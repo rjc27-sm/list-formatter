@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>List Formatter Tool – Australian Government Style Manual</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background: linear-gradient(to bottom right, #f8fafc, #ffffff, #f1f5f9);
+      padding: 2rem;
+      line-height: 1.6;
+      color: #1e293b;
+    }
+
+    .container {
+      max-width: 56rem;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fade-in 0.6s ease-out;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-bottom: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      background-color: #e2e8f0;
+      color: #475569;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      border-radius: 9999px;
+    }
+
+    h1 {
+      font-family: 'Crimson Text', serif;
+      font-size: 3rem;
+      font-weight: 400;
+      color: #0f172a;
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      font-size: 1.125rem;
+      color: #475569;
+      max-width: 42rem;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 48rem) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .panel:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .input-panel {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+
+    .output-panel {
+      background-color: #f8fafc;
+    }
+
+    .panel-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .output-panel .panel-header {
+      background: linear-gradient(to right, #f1f5f9, #e2e8f0);
+      border-bottom-color: #cbd5e1;
+    }
+
+    .panel-header h2 {
+      font-family: 'Crimson Text', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+    }
+
+    .output-panel .panel-header h2 {
+      color: #0f172a;
+    }
+
+    .panel-header p {
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+
+    .output-panel .panel-header p {
+      color: #64748b;
+    }
+
+    textarea {
+      width: 100%;
+      height: 16rem;
+      padding: 1.5rem;
+      border: none;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      resize: none;
+      background-color: #ffffff;
+      color: #0f172a;
+    }
+
+    textarea:focus {
+      outline: none;
+      box-shadow: inset 0 0 0 2px #cbd5e1;
+    }
+
+    textarea::placeholder {
+      color: rgba(107, 114, 128, 0.6);
+    }
+
+    .output-container {
+      padding: 1.5rem;
+      background-color: #f8fafc;
+      position: relative;
+      min-height: 16rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    pre {
+      color: #0f172a;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      flex: 1;
+    }
+
+    .copy-button {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.5rem;
+      background-color: #475569;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      color: #ffffff;
+      transition: background-color 0.2s ease;
+      width: 2.25rem;
+      height: 2.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .copy-button:hover {
+      background-color: #334155;
+    }
+
+    .copy-button svg {
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+
+    .copy-button.copied {
+      color: #4ade80;
+    }
+
+    .explanation {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      animation: slide-up 0.4s ease-out;
+    }
+
+    .explanation h3 {
+      font-family: 'Crimson Text', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: #1e40af;
+      margin-bottom: 0.5rem;
+    }
+
+    .explanation p {
+      color: #1e3a8a;
+      line-height: 1.7;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 4rem;
+    }
+
+    button {
+      padding: 0.75rem 2rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .format-btn {
+      background-color: #0f172a;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .format-btn:hover {
+      background-color: #1e293b;
+    }
+
+    .reset-btn {
+      background-color: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .reset-btn:hover {
+      background-color: #f8fafc;
+    }
+
+    .footer-guide {
+      margin-top: 4rem;
+      padding-top: 3rem;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      gap: 2rem;
+    }
+
+    .guide-card h4 {
+      font-family: 'Crimson Text', serif;
+      font-size: 1.125rem;
+      font-weight: 400;
+      color: #0f172a;
+      margin-bottom: 0.75rem;
+    }
+
+    .guide-card p {
+      font-size: 0.875rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    .copyright {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+
+    .copyright a {
+      color: #475569;
+      text-decoration: underline;
+    }
+
+    .copyright a:hover {
+      color: #0f172a;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slide-up {
+      from {
+        opacity: 0;
+        transform: translateY(0.75rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .type-selector {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 1rem;
+      padding: 0.875rem 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      background-color: #f8fafc;
+      font-size: 0.8125rem;
+      color: #475569;
+    }
+
+    .type-selector-label {
+      font-weight: 600;
+      color: #334155;
+      margin-right: 0.25rem;
+    }
+
+    .type-selector label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+    }
+
+    .type-selector input {
+      accent-color: #0f172a;
+      cursor: pointer;
+    }
+
+    .error-panel {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 4px solid #dc2626;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      animation: slide-up 0.4s ease-out;
+    }
+
+    .error-icon {
+      flex-shrink: 0;
+      color: #dc2626;
+      margin-top: 0.125rem;
+    }
+
+    .error-icon svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .error-panel h3 {
+      font-family: 'Crimson Text', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: #991b1b;
+      margin-bottom: 0.5rem;
+    }
+
+    .error-panel p {
+      color: #7f1d1d;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .report-link-row {
+      text-align: center;
+      margin-top: -2rem;
+      margin-bottom: 3rem;
+    }
+
+    .report-link {
+      background: none;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      color: #64748b;
+      font-size: 0.875rem;
+      text-decoration: underline;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .report-link:hover {
+      color: #0f172a;
+    }
+
+    .report-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+      z-index: 50;
+      animation: fade-in 0.2s ease-out;
+    }
+
+    .report-card {
+      background: #ffffff;
+      border-radius: 0.75rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      padding: 2rem;
+      width: 100%;
+      max-width: 36rem;
+      margin: auto;
+    }
+
+    .report-card h3 {
+      font-family: 'Crimson Text', serif;
+      font-size: 1.75rem;
+      font-weight: 400;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+    }
+
+    .report-intro {
+      font-size: 0.9rem;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+
+    .report-label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.35rem;
+      margin-top: 1rem;
+    }
+
+    .report-field {
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: #0f172a;
+      resize: vertical;
+      background: #f8fafc;
+    }
+
+    .report-field:focus {
+      outline: none;
+      border-color: #94a3b8;
+      box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.35);
+      background: #ffffff;
+    }
+
+    .report-status {
+      min-height: 1.25rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: #15803d;
+      line-height: 1.5;
+    }
+
+    .report-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .report-primary, .report-secondary {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .report-primary {
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+    }
+
+    .report-primary:hover {
+      background: #1e293b;
+    }
+
+    .report-secondary {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+
+    .report-secondary:hover {
+      background: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="badge">Australian Government Style Manual</div>
+      <h1>List formatter</h1>
+      <p class="subtitle">Format your lists correctly according to the Australian Government Style Manual. Enter your content, and we'll structure it with proper punctuation and capitalisation.</p>
+      <p style="font-size: 0.875rem; color: #64748b; margin-top: 1rem; max-width: 42rem; margin-left: auto; margin-right: auto;">The tool works out your list type from the lead-in and the list items. If the auto-detection is wrong, choose the list type yourself. It only formats lists whose items share the same structure (that is, are <a href="https://www.stylemanual.gov.au/style-manual-resources/government-writing-handbook/editors-tips/parallel-structure-lists" target="_blank" rel="noopener noreferrer" style="color: #0f172a; text-decoration: underline;">parallel</a>). If it spots that your list isn't parallel, it will tell you what to fix first.</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Input Panel -->
+      <div class="panel input-panel">
+        <div class="panel-header">
+          <h2>Your content</h2>
+          <p>Enter your lead-in on the first line, then list items below. For a second level, indent the sub-items or mark them with a dash or letter.</p>
+        </div>
+        <textarea id="input" placeholder="Enter your list here"></textarea>
+        <div class="type-selector">
+          <span class="type-selector-label">List type</span>
+          <label><input type="radio" name="listType" value="auto" checked> Auto-detect</label>
+          <label><input type="radio" name="listType" value="sentence"> Sentence</label>
+          <label><input type="radio" name="listType" value="fragment"> Fragment</label>
+          <label><input type="radio" name="listType" value="standAlone"> Stand-alone</label>
+        </div>
+      </div>
+
+      <!-- Output Panel -->
+      <div class="panel output-panel">
+        <div class="panel-header">
+          <h2>Formatted list</h2>
+          <p>Your properly formatted content</p>
+        </div>
+        <div class="output-container">
+          <pre id="output">Your formatted list will appear here</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error / refusal panel -->
+    <div id="errorPanel" class="error-panel hidden" role="alert">
+      <div class="error-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="13"></line>
+          <line x1="12" y1="16.5" x2="12" y2="16.5"></line>
+        </svg>
+      </div>
+      <div>
+        <h3 id="errorHeading">This list can’t be formatted yet</h3>
+        <p id="errorText"></p>
+      </div>
+    </div>
+
+    <!-- Copy Button -->
+    <div style="display: flex; justify-content: center; margin-top: 1.5rem; margin-bottom: 2rem;">
+      <button class="hidden" id="copyBtn" style="padding: 0.75rem 2rem; background-color: #0f172a; color: #ffffff; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">Copy list</button>
+    </div>
+
+    <!-- Explanation -->
+    <div id="explanation" class="explanation hidden">
+      <h3>Why this works</h3>
+      <p id="explanationText"></p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="format-btn" onclick="analyseList()">Format list</button>
+      <button class="reset-btn" onclick="reset()">
+        <svg fill="currentColor" viewBox="0 0 24 24" style="width: 1.125rem; height: 1.125rem;">
+          <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 03.51 15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Reset
+      </button>
+    </div>
+
+    <!-- Report an issue -->
+    <div class="report-link-row">
+      <button type="button" id="reportOpenBtn" class="report-link">Spotted a problem? Report an issue</button>
+    </div>
+
+    <!-- Footer Guide -->
+    <div class="footer-guide">
+      <div class="guide-grid">
+        <div class="guide-card">
+          <h4>Sentence list</h4>
+          <p>Use when each list item is a complete sentence. Items start with capitals and end with full stops.</p>
+        </div>
+        <div class="guide-card">
+          <h4>Fragment list</h4>
+          <p>Use with a phrase lead-in. Items start lowercase (unless proper nouns) and only the last item has a full stop.</p>
+        </div>
+        <div class="guide-card">
+          <h4>Stand-alone list</h4>
+          <p>Use with a heading only. Items start with capitals but have no punctuation at the end.</p>
+        </div>
+        <div class="guide-card">
+          <h4>Numbered list</h4>
+          <p>Use a numbered list only when the order matters – for instructions, a sequence of events or a ranking.</p>
+        </div>
+        <div class="guide-card">
+          <h4>Multi-level list</h4>
+          <p>Use sparingly and keep to 2 levels. Mark the second level with a dash (not a hollow bullet) or a lower-case letter.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="copyright">
+      <p>Based on the <a href="https://www.stylemanual.gov.au">Australian Government Style Manual</a></p>
+    </div>
+  </div>
+
+  <!-- Issue report modal -->
+  <div id="reportModal" class="report-modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+    <div class="report-card">
+      <h3 id="reportTitle">Report an issue</h3>
+      <p class="report-intro">Your list and what the tool produced are filled in below. Add what you expected to see, then copy the report or email it.</p>
+
+      <label class="report-label" for="reportOriginal">Your original list</label>
+      <textarea id="reportOriginal" class="report-field" rows="4"></textarea>
+
+      <label class="report-label" for="reportProduced">What the tool produced</label>
+      <textarea id="reportProduced" class="report-field" rows="4"></textarea>
+
+      <label class="report-label" for="reportExpected">What you expected to see</label>
+      <textarea id="reportExpected" class="report-field" rows="4" placeholder="Describe or paste the output you were expecting"></textarea>
+
+      <label class="report-label" for="reportNotes">Notes (optional)</label>
+      <textarea id="reportNotes" class="report-field" rows="2" placeholder="Anything else worth knowing"></textarea>
+
+      <p id="reportStatus" class="report-status" role="status"></p>
+
+      <div class="report-actions">
+        <button type="button" id="reportCopyBtn" class="report-primary">Copy report</button>
+        <button type="button" id="reportEmailBtn" class="report-secondary">Email report</button>
+        <button type="button" id="reportCloseBtn" class="report-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+/* List Formatter – core logic.
+ * Pure functions, no DOM. Mirrored verbatim into the HTML artifact.
+ * Australian Government Style Manual list rules.
+ */
+
+// Common base-form verbs used to spot imperative-style items ("use everyday words").
+// Base-form verbs used to spot imperative-style items ("use everyday words").
+// Deliberately excludes words that are commonly nouns at the start of a phrase
+// (support, report, order, plan, record, review, monitor, etc.) to avoid mislabelling
+// noun-phrase items as commands.
+const VERB_LIST = ['be','have','do','say','get','make','go','know','take','see','come','think','use','find','give','tell','call','try','ask','need','feel','become','leave','put','keep','let','begin','seem','help','talk','turn','show','hear','run','move','believe','hold','bring','happen','write','provide','sit','lose','meet','include','continue','learn','change','lead','understand','speak','allow','spend','grow','open','walk','win','offer','remember','consider','appear','buy','wait','serve','send','expect','build','stay','reach','remain','suggest','sell','require','decide','pull','explain','develop','carry','break','eat','catch','choose','gather','apply','produce','prevent','operate','communicate','achieve','complete','obtain','attend','register','submit','ensure','identify','describe','select','enter','contact','confirm','attach','sign','arrange','prepare','update','assess'];
+
+// Subject pronouns that signal an independent clause ("You must…", "We will…").
+const SUBJECT_PRONOUNS = ['i','you','we','they','he','she','it'];
+
+// Finite verbs / modals that, with a subject, signal a complete statement.
+const FINITE_VERBS = ['is','are','was','were','will','would','shall','should','can','could','may','might','must','has','have','had','do','does','did'];
+
+// Words a phrase lead-in dangles on – the items complete the thought.
+const DANGLING_WORDS = ['of','for','with','to','in','on','at','by','about','from','into','like','as','including','namely','its','their','our','your','my','his','her','the','a','an','these','those','this','that','following','below','such'];
+
+function firstWord(text) {
+  return text.trim().split(/\s+/)[0].replace(/[^A-Za-z'-]/g, '').toLowerCase();
+}
+
+function isBaseVerb(word) {
+  return VERB_LIST.includes(word);
+}
+
+// Strip leading bullet/number markers and surrounding whitespace.
+function stripMarker(item) {
+  return item
+    .replace(/^\s*[-–—•*‣◦·○]\s*/, '')
+    .replace(/^\s*\d+[.)]\s*/, '')
+    .replace(/^\s*[a-z][.)]\s*/i, '')
+    .trim();
+}
+
+// Clean trailing list-joining punctuation and conjunctions. Returns {text, flags}.
+function cleanItem(raw) {
+  const flags = { removedConjunction: false, removedSemicolon: false, removedComma: false, removedStop: false };
+  let t = stripMarker(raw);
+
+  // trailing 'and'/'or' with any preceding punctuation
+  const conjMatch = t.match(/\s*[;,]?\s*\b(and|or)\b\s*$/i);
+  if (conjMatch) {
+    flags.removedConjunction = true;
+    t = t.replace(/\s*[;,]?\s*\b(and|or)\b\s*$/i, '');
+  }
+  if (/;\s*$/.test(t)) flags.removedSemicolon = true;
+  if (/,\s*$/.test(t)) flags.removedComma = true;
+  if (/[.!?]\s*$/.test(t)) flags.removedStop = true;
+  // remove any remaining trailing punctuation
+  t = t.replace(/[.!?;,]+\s*$/, '').trim();
+
+  return { text: t, flags };
+}
+
+// A short allowlist of words that are very likely proper nouns / fixed terms, so the
+// capitalisation pass leaves them alone. Acronyms (all-caps) are handled separately.
+const PROPER_ALLOW = /^(Australia|Australian|Canberra|Adelaide|Sydney|Melbourne|Brisbane|Perth|Hobart|Darwin|Medicare|Medicaid|Commonwealth|Indigenous|Aboriginal|Torres|Strait|Islander|Parliament|Cabinet|January|February|March|April|May|June|July|August|September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|English|First|Nations)$/;
+
+// Inspect an item for over-capitalised words mid-sentence. Words that are clearly
+// common verbs are lower-cased automatically (zero proper-noun risk); anything else
+// capitalised mid-sentence is left untouched but flagged for the writer to check.
+function processCaps(text) {
+  const tokens = text.split(/(\s+)/); // keep whitespace tokens so we can rejoin
+  const corrected = [];
+  const flagged = [];
+  let newSentence = true; // the first word starts a sentence
+
+  for (let i = 0; i < tokens.length; i++) {
+    const tok = tokens[i];
+    if (/^\s*$/.test(tok)) continue;
+
+    const lead = tok.match(/^[^A-Za-z]*/)[0];          // leading '(' etc.
+    const core = tok.slice(lead.length);
+    const wm = core.match(/^[A-Za-z][A-Za-z'-]*/);
+    const atStart = newSentence;
+
+    if (wm) {
+      const word = wm[0];
+      const rest = core.slice(word.length);
+      const isAcronym = /^[A-Z][A-Z0-9]+$/.test(word);  // AIHW, ATO
+      const startsCap = /^[A-Z]/.test(word);
+      if (!atStart && startsCap && !isAcronym && !PROPER_ALLOW.test(word)) {
+        if (isBaseVerb(word.toLowerCase())) {
+          tokens[i] = lead + word.charAt(0).toLowerCase() + word.slice(1) + rest;
+          corrected.push(word);
+        } else {
+          flagged.push(word);
+        }
+      }
+    }
+    // A token ending in sentence punctuation starts a new sentence next.
+    newSentence = /[.!?]["'’)\]]*$/.test(tok);
+  }
+  return { text: tokens.join(''), corrected, flagged };
+}
+
+// Classify a single item: 'clause' (independent statement), 'imperative' (command),
+// 'gerund' (an -ing phrase) or 'phrase' (noun phrase). Only the START is inspected.
+function classifyItem(cleanText) {
+  const words = cleanText.split(/\s+/);
+  const fw = firstWord(cleanText);
+
+  // 'Please …' is a command/directive ('Please consider workplace safety').
+  if (fw === 'please') return 'imperative';
+  // Starts with an -ing word → gerund phrase ('reaching out', 'cleaning storage').
+  if (/[a-z]{2}ing$/.test(fw)) return 'gerund';
+  // Starts with a base-form verb → imperative ('use everyday words').
+  if (isBaseVerb(fw)) return 'imperative';
+  // Starts with a subject pronoun → independent clause ('You must…').
+  if (SUBJECT_PRONOUNS.includes(fw)) return 'clause';
+  // Subject noun followed closely by a finite verb/modal → clause ('Staff must complete…').
+  for (let i = 1; i <= 2 && i < words.length; i++) {
+    const w = words[i].replace(/[^A-Za-z'-]/g, '').toLowerCase();
+    if (FINITE_VERBS.includes(w)) return 'clause';
+  }
+  return 'phrase';
+}
+
+// Classify the lead-in: 'sentence', 'phrase', or 'heading'.
+function classifyLeadIn(rawLeadIn) {
+  const trimmed = rawLeadIn.trim();
+  const noColon = trimmed.replace(/:\s*$/, '').trim();
+  const endsColon = /:\s*$/.test(trimmed);
+  const endsSentence = /[.!?]\s*$/.test(trimmed);
+
+  // last meaningful word
+  const lastWord = noColon.replace(/[.!?]\s*$/, '').trim().split(/\s+/).pop().toLowerCase().replace(/[^a-z'-]/g, '');
+  const danglesOnPhrase = DANGLING_WORDS.includes(lastWord);
+
+  const words = noColon.split(/\s+/);
+
+  // Does it contain a subject + finite verb (a real clause)?
+  let hasFiniteClause = false;
+  for (let i = 0; i < words.length - 1; i++) {
+    const w = words[i].toLowerCase().replace(/[^a-z'-]/g, '');
+    const next = words[i + 1].toLowerCase().replace(/[^a-z'-]/g, '');
+    if ((SUBJECT_PRONOUNS.includes(w) || /^[a-z]+s?$/.test(w)) && FINITE_VERBS.includes(next)) {
+      hasFiniteClause = true;
+      break;
+    }
+  }
+
+  // No colon and no sentence punctuation → likely a heading (stand-alone), unless it
+  // clearly dangles as a phrase lead-in.
+  if (!endsColon && !endsSentence) {
+    if (danglesOnPhrase) return 'phrase';
+    return 'heading';
+  }
+
+  // Ends in a dangling word → phrase lead-in regardless of an embedded verb
+  // ("Adelaide is famous for its:", "...experience with:").
+  if (danglesOnPhrase) return 'phrase';
+
+  // A complete statement/question lead-in → sentence list.
+  if (endsSentence) return 'sentence';
+  if (hasFiniteClause) return 'sentence';
+
+  // Colon-terminated label or infinitive phrase → phrase.
+  return 'phrase';
+}
+
+// Decide the overall list type and whether items are parallel.
+function detect(rawLeadIn, rawItems) {
+  const cleaned = rawItems.map(cleanItem);
+  // Capitalisation pass: fix safe mid-sentence verbs, collect anything to flag.
+  const capCorrected = [];
+  const capFlagged = [];
+  cleaned.forEach(c => {
+    const r = processCaps(c.text);
+    c.text = r.text;
+    r.corrected.forEach(w => { if (!capCorrected.includes(w)) capCorrected.push(w); });
+    r.flagged.forEach(w => { if (!capFlagged.includes(w)) capFlagged.push(w); });
+  });
+  const granular = cleaned.map(c => classifyItem(c.text)); // clause | imperative | gerund | phrase
+  const set = new Set(granular);
+  const hasClause = set.has('clause');
+  const hasImper = set.has('imperative');
+  const hasGerund = set.has('gerund');
+
+  // Refusal gate. Two detectable mismatches:
+  //  - an independent statement mixed with anything else ('You must…' beside 'Have…')
+  //  - a command mixed with phrases ('Please consider…' beside 'reaching…', 'cleaning…')
+  // Imperative-vs-noun-phrase is left alone (too ambiguous, and the Style Manual's own
+  // sentence-list example mixes a bare verb with a noun phrase).
+  let parallel = true;
+  let mismatch = null;
+  if (hasClause && set.size > 1) { parallel = false; mismatch = 'statement'; }
+  else if (hasImper && hasGerund) { parallel = false; mismatch = 'command'; }
+
+  // For list type, gerunds count as phrases (both complete the lead-in as fragments).
+  const allClause = granular.every(c => c === 'clause');
+  const allPhrase = granular.every(c => c === 'phrase' || c === 'gerund');
+  const allGranular = [...set];
+
+  const leadInType = classifyLeadIn(rawLeadIn);
+
+  // The items decide sentence vs fragment; the lead-in only settles the imperative case.
+  //  - Independent statements ('You must…')           → sentence list.
+  //  - Phrases / gerunds ('T1 on 1 April', 'cleaning') → fragment list, even when the
+  //    lead-in reads as a full sentence (the items complete it, e.g. 'held [in]: T1…').
+  //  - Imperatives ('use everyday words') can sit in either, so follow the lead-in:
+  //    a complete-sentence lead-in → sentence list; a phrase lead-in → fragment list.
+  let listType;
+  if (leadInType === 'heading') {
+    listType = 'standAlone';
+  } else if (allClause) {
+    listType = 'sentence';
+  } else if (allPhrase) {
+    listType = 'fragment';
+  } else {
+    listType = leadInType === 'sentence' ? 'sentence' : 'fragment';
+  }
+
+  // A fragment list whose lead-in doesn't end on a connecting word may not read
+  // grammatically into the items ('…will be held: T1' needs 'held in:').
+  const leadLast = rawLeadIn.trim().replace(/:\s*$/, '').replace(/[.!?]\s*$/, '')
+    .trim().split(/\s+/).pop().toLowerCase().replace(/[^a-z'-]/g, '');
+  const needsConnector = listType === 'fragment' && allPhrase && !DANGLING_WORDS.includes(leadLast);
+
+  return { listType, leadInType, granular, allGranular, parallel, mismatch, cleaned, capCorrected, capFlagged, needsConnector };
+}
+
+// A plain-language descriptor for the kind of items present.
+function itemKindLabel(allGranular) {
+  if (allGranular.length === 1 && allGranular[0] === 'clause') return 'complete statements';
+  if (allGranular.length === 1 && allGranular[0] === 'imperative') return 'commands that start with a verb';
+  if (allGranular.length === 1 && allGranular[0] === 'phrase') return 'noun phrases';
+  if (!allGranular.includes('clause')) return 'phrases';
+  return 'mixed';
+}
+
+// ---- Formatters ----
+
+function buildLeadIn(rawLeadIn, withColon) {
+  let base = rawLeadIn.trim().replace(/:\s*$/, '').replace(/[.!?]\s*$/, '').trim();
+  return withColon ? base + ':' : base;
+}
+
+function marker(numbered, i) {
+  return numbered ? `${i + 1}.` : '\u2022';
+}
+
+function formatFragment(rawLeadIn, cleaned, numbered) {
+  let out = buildLeadIn(rawLeadIn, true) + '\n';
+  cleaned.forEach((c, i) => {
+    let t = lowerFirstUnlessProper(c.text);
+    const stop = i === cleaned.length - 1 ? '.' : '';
+    out += `${marker(numbered, i)} ${t}${stop}\n`;
+  });
+  return out.trim();
+}
+
+function formatSentence(rawLeadIn, cleaned, numbered) {
+  let out = buildLeadIn(rawLeadIn, true) + '\n';
+  cleaned.forEach((c, i) => {
+    let t = c.text.charAt(0).toUpperCase() + c.text.slice(1);
+    out += `${marker(numbered, i)} ${t}.\n`;
+  });
+  return out.trim();
+}
+
+function formatStandAlone(rawLeadIn, cleaned, numbered) {
+  let out = rawLeadIn.trim().replace(/:\s*$/, '') + '\n';
+  cleaned.forEach((c, i) => {
+    let t = c.text.charAt(0).toUpperCase() + c.text.slice(1);
+    out += numbered ? `${marker(numbered, i)} ${t}\n` : `${t}\n`;
+  });
+  return out.trim();
+}
+
+function lowerFirstUnlessProper(t) {
+  // Keep as-is if the item looks like it starts with a proper noun, acronym or code.
+  const first = t.split(/\s+/)[0];
+  if (/\d/.test(first)) return t;                     // codes/labels e.g. T1, T11, Q1, COVID19
+  if (/^[A-Z]{2,}$/.test(first)) return t;            // acronym e.g. AIHW
+  if (/^[A-Z][a-z]+/.test(first) && PROPER_HINT.test(first)) return t;
+  return t.charAt(0).toLowerCase() + t.slice(1);
+}
+// Heuristic proper-noun hint kept intentionally narrow; default is to lowercase.
+const PROPER_HINT = /^(Australia|Australian|Canberra|Adelaide|Medicare|AIHW|APSC|Commonwealth|Indigenous|First|Aboriginal|Torres|NSW|ACT|Sydney|Melbourne)$/;
+
+// ---- Multilevel lists ----
+
+function leadingWidth(line) {
+  const ws = line.match(/^[ \t]*/)[0];
+  let w = 0;
+  for (const ch of ws) w += ch === '\t' ? 4 : 1;
+  return w;
+}
+
+function markerKind(noIndent) {
+  if (/^\d+[.)]\s/.test(noIndent)) return 'number';
+  if (/^[a-z][.)]\s/.test(noIndent)) return 'lowerLetter';
+  if (/^[A-Z][.)]\s/.test(noIndent)) return 'upperLetter';
+  if (/^[–—-]\s/.test(noIndent)) return 'dash';
+  if (/^[○◦o]\s/.test(noIndent)) return 'hollow';
+  if (/^[•·*‣]\s/.test(noIndent)) return 'bullet';
+  return 'none';
+}
+
+// Work out whether the items form a 2-level hierarchy, and assign each a level.
+function parseHierarchy(rawItems) {
+  const rows = rawItems.map(line => {
+    const indent = leadingWidth(line);
+    const noIndent = line.replace(/^[ \t]+/, '');
+    return { line, indent, marker: markerKind(noIndent), level: 0 };
+  });
+  const indents = [...new Set(rows.map(r => r.indent))].sort((a, b) => a - b);
+  const base = indents[0];
+
+  let multilevel = false, tooDeep = false;
+  if (indents.length >= 2) {
+    multilevel = true;
+    if (indents.length >= 3) tooDeep = true;
+    rows.forEach(r => { r.level = r.indent > base ? 1 : 0; });
+  } else {
+    const parentKinds = new Set(['number', 'bullet', 'none', 'upperLetter']);
+    const childKinds = new Set(['dash', 'hollow', 'lowerLetter']);
+    const hasParent = rows.some(r => parentKinds.has(r.marker));
+    const hasChild = rows.some(r => childKinds.has(r.marker));
+    if (hasParent && hasChild) {
+      multilevel = true;
+      rows.forEach(r => { r.level = childKinds.has(r.marker) ? 1 : 0; });
+    }
+  }
+
+  // An item that appears before any parent can't be a child – treat it as a parent.
+  let seenParent = false;
+  rows.forEach(r => {
+    if (r.level === 0) seenParent = true;
+    else if (!seenParent) r.level = 0;
+  });
+
+  const lvl0 = rows.filter(r => r.level === 0);
+  const numbered0 = lvl0.filter(r => r.marker === 'number').length;
+  const ordered = multilevel &&
+    (numbered0 >= Math.ceil(lvl0.length / 2) || rows.some(r => r.marker === 'number' || r.marker === 'lowerLetter'));
+
+  return { rows, multilevel, tooDeep, ordered };
+}
+
+function letterFor(n) {
+  return n < 26 ? String.fromCharCode(97 + n) : String.fromCharCode(97 + (n % 26));
+}
+
+function formatMultilevel(rawLeadIn, rows, listType, ordered) {
+  let out = (listType === 'standAlone'
+    ? rawLeadIn.trim().replace(/:\s*$/, '')
+    : buildLeadIn(rawLeadIn, true)) + '\n';
+
+  const lastIndex = rows.length - 1;
+  let parentNo = 0, childNo = 0;
+
+  rows.forEach((r, i) => {
+    let text = r.text;
+    if (listType === 'fragment') {
+      text = lowerFirstUnlessProper(text);
+      if (i === lastIndex) text += '.';
+    } else if (listType === 'sentence') {
+      text = text.charAt(0).toUpperCase() + text.slice(1) + '.';
+    } else { // standAlone
+      text = text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    if (r.level === 0) {
+      parentNo += 1;
+      childNo = 0;
+      const marker = ordered ? `${parentNo}.` : '\u2022';
+      out += `${marker} ${text}\n`;
+    } else {
+      const marker = ordered ? `${letterFor(childNo)}.` : '\u2013';
+      childNo += 1;
+      out += `    ${marker} ${text}\n`;
+    }
+  });
+  return out.trim();
+}
+
+function analyseMultilevel(rawLeadIn, h, forcedType) {
+  const capCorrected = [], capFlagged = [];
+  h.rows.forEach(r => {
+    const c = cleanItem(r.line);
+    const caps = processCaps(c.text);
+    r.text = caps.text;
+    r.flags = c.flags;
+    caps.corrected.forEach(w => { if (!capCorrected.includes(w)) capCorrected.push(w); });
+    caps.flagged.forEach(w => { if (!capFlagged.includes(w)) capFlagged.push(w); });
+  });
+
+  const lvl0 = h.rows.filter(r => r.level === 0);
+  const lvl1 = h.rows.filter(r => r.level === 1);
+
+  // Each level must be internally parallel.
+  const gateLevel = (rows) => {
+    const set = new Set(rows.map(r => classifyItem(r.text)));
+    if (set.has('clause') && set.size > 1) return 'statement';
+    if (set.has('imperative') && set.has('gerund')) return 'command';
+    return null;
+  };
+  const m0 = gateLevel(lvl0);
+  const m1 = lvl1.length ? gateLevel(lvl1) : null;
+  if (m0 || m1) {
+    const where = m0 && m1 ? 'both levels' : (m0 ? 'the first level' : 'the second level');
+    const message =
+      'This list can\u2019t be formatted yet.\n\n' +
+      `Parallel structure issue at ${where}: the items there aren\u2019t all the same grammatical form. ` +
+      'In a multilevel list, the items at each level must match each other (all phrases, all statements, or all commands). ' +
+      'Rewrite the odd one out to match its siblings, then format again.';
+    return { status: 'refused', message };
+  }
+
+  const allG = h.rows.map(r => classifyItem(r.text));
+  const allClause = allG.every(c => c === 'clause');
+  const allPhrase = allG.every(c => c === 'phrase' || c === 'gerund');
+  const leadInType = classifyLeadIn(rawLeadIn);
+
+  let listType = forcedType;
+  if (!listType) {
+    if (leadInType === 'heading') listType = 'standAlone';
+    else if (allClause) listType = 'sentence';
+    else if (allPhrase) listType = 'fragment';
+    else listType = leadInType === 'sentence' ? 'sentence' : 'fragment';
+  }
+
+  const formatted = formatMultilevel(rawLeadIn, h.rows, listType, h.ordered);
+
+  const secondLevel = h.ordered
+    ? 'lowercase letters (a, b, c) for the second level'
+    : 'a dash (\u2013) for the second level, not a hollow bullet';
+  const firstLevel = h.ordered ? 'numbers' : 'bullets';
+
+  let casing;
+  if (listType === 'fragment') casing = 'Items are lower-case (unless they start with a proper noun) and only the very last item takes a full stop.';
+  else if (listType === 'sentence') casing = 'Each item starts with a capital letter and ends with a full stop.';
+  else casing = 'Each item starts with a capital letter and takes no end punctuation.';
+
+  let explanation =
+    `This is a multilevel ${h.ordered ? 'ordered' : 'unordered'} list. ` +
+    `It uses ${firstLevel} for the first level and ${secondLevel}, as the Style Manual requires. ` +
+    'Keep multilevel lists to 2 levels and use them sparingly, since they are harder to follow. ' +
+    casing + ' Each level should be parallel within itself.';
+
+  if (h.tooDeep) {
+    explanation += ' I treated this as 2 levels \u2013 the Style Manual says don\u2019t use more than 2, so check that anything deeper has folded in correctly.';
+  }
+  explanation += capsNote({ capCorrected, capFlagged }) + collectFixes(h.rows.map(r => ({ flags: r.flags })));
+
+  return { status: 'ok', listType, formatted, explanation, multilevel: true };
+}
+
+// ---- Top-level analyse ----
+
+function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlone' */) {
+  if (!input || !input.trim()) {
+    return { status: 'empty', message: 'Enter a lead-in on the first line, then your list items below.' };
+  }
+  const lines = input.trim().split('\n');
+  const rawLeadIn = lines[0];
+  const rawItems = lines.slice(1).filter(l => l.trim());
+
+  if (rawItems.length === 0) {
+    return { status: 'error', message: 'Add a lead-in on the first line and at least 2 list items below it.' };
+  }
+  if (rawItems.length === 1) {
+    return { status: 'error', message: 'A list needs 2 or more items. With a single item, write it as a normal sentence instead.' };
+  }
+
+  const hierarchy = parseHierarchy(rawItems);
+  if (hierarchy.multilevel) {
+    return analyseMultilevel(rawLeadIn, hierarchy, forcedType);
+  }
+
+  const d = detect(rawLeadIn, rawItems);
+  const listType = forcedType || d.listType;
+
+  // Parallel-structure gate: refuse when items mix grammatical forms.
+  if (!d.parallel) {
+    const exampleOf = (cat) => {
+      const i = d.granular.indexOf(cat);
+      return i === -1 ? '' : d.cleaned[i].text.split(/\s+/).slice(0, 3).join(' ');
+    };
+    let message;
+    if (d.mismatch === 'command') {
+      const cmd = exampleOf('imperative');
+      const phr = exampleOf('gerund') || exampleOf('phrase');
+      message =
+        'This list can\u2019t be formatted yet.\n\n' +
+        'Parallel structure issue: one item is a command while the others are phrases. ' +
+        `\u2018${cmd}\u2026\u2019 tells the reader to do something, but items like \u2018${phr}\u2026\u2019 just name a thing. ` +
+        'Parallel structure means every item follows the same grammatical pattern, so they all read smoothly after the lead-in. ' +
+        'Rewrite the odd one out to match the others (for example, start it with the same kind of word), or move it out of the list \u2013 then format again.';
+    } else {
+      const starts = d.cleaned.map(c => `\u2018${c.text.split(/\s+/)[0]}\u2019`);
+      message =
+        'This list can\u2019t be formatted yet.\n\n' +
+        'Parallel structure issue: the items aren\u2019t all the same kind. ' +
+        'Some are complete statements (such as \u2018You must\u2026\u2019) while others are short phrases or commands. ' +
+        `Your items begin with ${starts.join(', ')}. ` +
+        'Parallel structure means every item follows the same grammatical pattern, so they all read smoothly after the lead-in. ' +
+        'Rewrite the items so they match \u2013 for example, make each one a complete sentence (\u2018You must\u2026\u2019, \u2018You must have\u2026\u2019), ' +
+        'or make each one a short phrase \u2013 then format again.';
+    }
+    return { status: 'refused', message, detail: d };
+  }
+
+  let formatted, explanation;
+  const kind = itemKindLabel(d.allGranular);
+  const fixes = collectFixes(d.cleaned);
+  // Preserve numbering if most items were typed as a numbered list (order matters).
+  const numberedCount = rawItems.filter(l => /^\s*\d+[.)]\s/.test(l)).length;
+  const numbered = numberedCount >= Math.ceil(rawItems.length / 2);
+  const orderNote = numbered
+    ? ' I kept the numbers because the order looks deliberate \u2013 the Style Manual uses numbered lists only when sequence matters, so switch to bullets if it doesn\u2019t.'
+    : '';
+
+  if (listType === 'fragment') {
+    formatted = formatFragment(rawLeadIn, d.cleaned, numbered);
+    const fragReason = d.leadInType === 'sentence'
+      ? `Each item is a phrase that completes the lead-in \u2018${buildLeadIn(rawLeadIn, false)}\u2019 rather than a sentence in its own right`
+      : `The lead-in \u2018${buildLeadIn(rawLeadIn, false)}\u2019 is a phrase rather than a complete sentence, so each item finishes the thought it starts`;
+    explanation =
+      `This is a fragment list. ${fragReason}. ` +
+      'In a fragment list, items begin with a lower-case letter (unless they start with a proper noun) and only the final item takes a full stop. ' +
+      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + orderNote;
+  } else if (listType === 'sentence') {
+    formatted = formatSentence(rawLeadIn, d.cleaned, numbered);
+    const reason = d.leadInType === 'sentence'
+      ? `The lead-in \u2018${buildLeadIn(rawLeadIn, false)}\u2019 is a complete sentence`
+      : 'Each item is a complete statement that can stand on its own';
+    explanation =
+      `This is a sentence list. ${reason}, so every item starts with a capital letter and ends with a full stop. ` +
+      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + orderNote;
+  } else {
+    formatted = formatStandAlone(rawLeadIn, d.cleaned, numbered);
+    explanation =
+      `This is a stand-alone list. \u2018${rawLeadIn.trim().replace(/:\s*$/, '')}\u2019 reads as a heading with no lead-in sentence, ` +
+      'so each item starts with a capital letter and takes no end punctuation \u2013 not even the last one. ' +
+      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + orderNote +
+      ' Style Manual tip: headings use sentence case (capitalise only the first word and any proper nouns), so check the heading\u2019s capitals.';
+  }
+
+  return { status: 'ok', listType, formatted, explanation, detail: d };
+}
+
+function parallelNote(kind, listType) {
+  if (listType === 'standAlone') return 'The items are parallel \u2013 they all follow the same pattern.';
+  if (kind === 'complete statements') return 'The items are parallel \u2013 they\u2019re all complete statements.';
+  if (kind === 'commands that start with a verb') return 'The items are parallel \u2013 they all start with a verb in the same form.';
+  if (kind === 'noun phrases') return 'The items are parallel \u2013 they\u2019re all noun phrases.';
+  return 'The items look parallel \u2013 they\u2019re all phrases.';
+}
+
+// The closing instruction: a flow-and-grammar check when items attach to the lead-in,
+// otherwise a simple read-through.
+function closingCheck(d, listType) {
+  if (listType === 'standAlone') return ' Read them through once to confirm.';
+  if (d.needsConnector) return ' Read the lead-in with each list item to check each one flows smoothly and is grammatically correct.';
+  return ' Read them through once after the lead-in to confirm each one fits.';
+}
+
+function quoteList(words) {
+  const q = words.map(w => '\u2018' + w + '\u2019');
+  if (q.length === 1) return q[0];
+  if (q.length === 2) return q.join(' and ');
+  return q.slice(0, -1).join(', ') + ' and ' + q[q.length - 1];
+}
+
+function capsNote(d) {
+  let note = '';
+  if (d.capCorrected.length) {
+    note += ` I lower-cased ${quoteList(d.capCorrected)} \u2013 ${d.capCorrected.length === 1 ? 'it sat mid-sentence and is an ordinary verb, so the capital wasn\u2019t' : 'they sat mid-sentence and are ordinary verbs, so the capitals weren\u2019t'} needed.`;
+  }
+  if (d.capFlagged.length) {
+    note += ` Check the capitals on ${quoteList(d.capFlagged)} \u2013 the Style Manual uses minimal capitals, so lower-case ${d.capFlagged.length === 1 ? 'it' : 'them'} unless ${d.capFlagged.length === 1 ? 'it names' : 'they name'} something specific (a generic title like \u2018unit head\u2019 is lower-case).`;
+  }
+  return note;
+}
+
+function collectFixes(cleaned) {
+  const any = (k) => cleaned.some(c => c.flags[k]);
+  const bits = [];
+  if (any('removedConjunction')) bits.push('a trailing \u2018and\u2019 or \u2018or\u2019');
+  if (any('removedSemicolon')) bits.push('semicolons');
+  if (any('removedComma')) bits.push('trailing commas');
+  if (bits.length === 0) return '';
+  let list;
+  if (bits.length === 1) list = bits[0];
+  else if (bits.length === 2) list = bits.join(' and ');
+  else list = bits.slice(0, -1).join(', ') + ' and ' + bits[bits.length - 1];
+  return ` I removed ${list} from the ends of items, which the Style Manual doesn\u2019t use in lists.`;
+}
+
+
+
+  // ---- DOM wiring ----
+  function getForcedType() {
+    const sel = document.querySelector('input[name="listType"]:checked');
+    const v = sel ? sel.value : 'auto';
+    return v === 'auto' ? null : v;
+  }
+
+  function showError(heading, text) {
+    document.getElementById('errorHeading').textContent = heading;
+    document.getElementById('errorText').textContent = text;
+    document.getElementById('errorPanel').classList.remove('hidden');
+    document.getElementById('explanation').classList.add('hidden');
+    document.getElementById('copyBtn').classList.add('hidden');
+    document.getElementById('output').textContent = 'Your formatted list will appear here';
+  }
+
+  function analyseList() {
+    const input = document.getElementById('input').value;
+    const result = analyse(input, getForcedType());
+
+    if (result.status === 'empty') {
+      showError('Nothing to format yet', result.message);
+      return;
+    }
+    if (result.status === 'error') {
+      showError('This list needs a small change', result.message);
+      return;
+    }
+    if (result.status === 'refused') {
+      // The drafted heading lives on the first line of the message; show the rest as body.
+      const parts = result.message.split('\n\n');
+      const heading = parts[0].replace(/\u2019/g, '\u2019');
+      showError('This list can\u2019t be formatted yet', parts.slice(1).join('\n\n'));
+      return;
+    }
+
+    // success
+    document.getElementById('errorPanel').classList.add('hidden');
+    document.getElementById('output').textContent = result.formatted;
+    document.getElementById('explanationText').textContent = result.explanation;
+    document.getElementById('explanation').classList.remove('hidden');
+    document.getElementById('copyBtn').classList.remove('hidden');
+  }
+
+  function flashCopyBtn(label) {
+    const copyBtn = document.getElementById('copyBtn');
+    copyBtn.textContent = label;
+    setTimeout(() => { copyBtn.textContent = 'Copy list'; }, 2500);
+  }
+
+  // Last-resort: select the output text so the user can copy it with Ctrl/Cmd+C.
+  function selectOutput() {
+    try {
+      const out = document.getElementById('output');
+      const range = document.createRange();
+      range.selectNodeContents(out);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } catch (e) { /* ignore */ }
+  }
+
+  // Fallback copy via a hidden textarea + execCommand (works in many sandboxed iframes
+  // where the async Clipboard API is unavailable).
+  function execCommandCopy(text) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Promise<boolean> – tries the Clipboard API, then a textarea + execCommand fallback.
+  function robustCopy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(() => true).catch(() => execCommandCopy(text));
+    }
+    return Promise.resolve(execCommandCopy(text));
+  }
+
+  function copyToClipboard() {
+    const output = document.getElementById('output').textContent;
+    robustCopy(output).then(okFlag => {
+      if (okFlag) {
+        flashCopyBtn('Copied!');
+      } else {
+        selectOutput();
+        flashCopyBtn('Press Ctrl/Cmd+C to copy');
+      }
+    });
+  }
+
+  function reset() {
+    document.getElementById('input').value = '';
+    document.getElementById('output').textContent = 'Your formatted list will appear here';
+    document.getElementById('explanation').classList.add('hidden');
+    document.getElementById('errorPanel').classList.add('hidden');
+    document.getElementById('copyBtn').classList.add('hidden');
+    const auto = document.querySelector('input[name="listType"][value="auto"]');
+    if (auto) auto.checked = true;
+  }
+
+  // ---- Issue report ----
+  function currentToolOutput() {
+    const errVisible = !document.getElementById('errorPanel').classList.contains('hidden');
+    if (errVisible) {
+      return '(the tool refused to format it) ' + document.getElementById('errorText').textContent;
+    }
+    const out = document.getElementById('output').textContent.trim();
+    return out && !/will appear here/.test(out) ? out : '(nothing formatted yet)';
+  }
+
+  function openReport() {
+    document.getElementById('reportOriginal').value = document.getElementById('input').value;
+    document.getElementById('reportProduced').value = currentToolOutput();
+    document.getElementById('reportExpected').value = '';
+    document.getElementById('reportNotes').value = '';
+    document.getElementById('reportStatus').textContent = '';
+    document.getElementById('reportModal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('reportExpected').focus(), 50);
+  }
+
+  function closeReport() {
+    document.getElementById('reportModal').classList.add('hidden');
+  }
+
+  function buildReportText() {
+    const v = id => document.getElementById(id).value.trim();
+    const lines = [
+      'List Formatter \u2013 issue report',
+      '',
+      'ORIGINAL LIST',
+      v('reportOriginal') || '(none)',
+      '',
+      'WHAT THE TOOL PRODUCED',
+      v('reportProduced') || '(none)',
+      '',
+      'WHAT I EXPECTED',
+      v('reportExpected') || '(not filled in)',
+      ''
+    ];
+    if (v('reportNotes')) { lines.push('NOTES', v('reportNotes'), ''); }
+    lines.push('---', 'When: ' + new Date().toISOString(), 'Browser: ' + navigator.userAgent);
+    return lines.join('\n');
+  }
+
+  function copyReport() {
+    const status = document.getElementById('reportStatus');
+    robustCopy(buildReportText()).then(okFlag => {
+      status.textContent = okFlag
+        ? 'Report copied \u2013 paste it into an email or message to send it back.'
+        : 'Couldn\u2019t copy automatically \u2013 select the text in the fields and copy it manually.';
+    });
+  }
+
+  // Dedicated, disposable feedback inbox for this tool (safe to expose publicly).
+  const REPORT_EMAIL = 'listformatterfeedback@gmail.com';
+
+  function emailReport() {
+    const url = 'mailto:' + REPORT_EMAIL +
+      '?subject=' + encodeURIComponent('List Formatter issue report') +
+      '&body=' + encodeURIComponent(buildReportText());
+    window.location.href = url;
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+  document.getElementById('reportOpenBtn').addEventListener('click', openReport);
+  document.getElementById('reportCloseBtn').addEventListener('click', closeReport);
+  document.getElementById('reportCopyBtn').addEventListener('click', copyReport);
+  document.getElementById('reportEmailBtn').addEventListener('click', emailReport);
+  document.getElementById('reportModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('reportModal')) closeReport();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('reportModal').classList.contains('hidden')) closeReport();
+  });
+
+  </script>
+</body>
+</html>
