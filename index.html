@@ -557,7 +557,7 @@
     <div class="header">
       <div class="badge">Australian Government Style Manual</div>
       <h1>List formatter</h1>
-      <p class="subtitle">Format your lists correctly according to the Australian Government Style Manual. Enter your content, and we'll structure it with proper punctuation and capitalisation.</p>
+      <p class="subtitle">Format your lists according to the Australian Government Style Manual.</p>
       <p style="font-size: 0.875rem; color: #64748b; margin-top: 1rem; max-width: 42rem; margin-left: auto; margin-right: auto;">The tool works out your list type from the lead-in and the list items. If the auto-detection is wrong, choose the list type yourself. It only formats lists whose items share the same structure (that is, are <a href="https://www.stylemanual.gov.au/style-manual-resources/government-writing-handbook/editors-tips/parallel-structure-lists" target="_blank" rel="noopener noreferrer" style="color: #0f172a; text-decoration: underline;">parallel</a>). If it spots that your list isn't parallel, it will tell you what to fix first.</p>
     </div>
 
@@ -576,6 +576,7 @@
           <label><input type="radio" name="listType" value="sentence"> Sentence</label>
           <label><input type="radio" name="listType" value="fragment"> Fragment</label>
           <label><input type="radio" name="listType" value="standAlone"> Stand-alone</label>
+          <label><input type="radio" name="listType" value="multilevel"> Multi-level</label>
         </div>
       </div>
 
@@ -584,7 +585,6 @@
         <div class="panel-header">
           <div class="panel-header-text">
             <h2>Formatted list</h2>
-            <p>Your properly formatted content</p>
           </div>
           <button class="copy-btn hidden" id="copyBtn">Copy list</button>
         </div>
@@ -1136,7 +1136,7 @@ function analyseMultilevel(rawLeadIn, h, forcedType) {
 
   const secondLevel = h.ordered
     ? 'lowercase letters (a, b, c) for the second level'
-    : 'a dash (\u2013) for the second level, not a hollow bullet';
+    : 'a dash (\u2013) for the second level';
   const firstLevel = h.ordered ? 'numbers' : 'bullets';
 
   let casing;
@@ -1342,7 +1342,7 @@ function collectFixes(cleaned) {
   function getForcedType() {
     const sel = document.querySelector('input[name="listType"]:checked');
     const v = sel ? sel.value : 'auto';
-    return v === 'auto' ? null : v;
+    return (v === 'auto' || v === 'multilevel') ? null : v;
   }
 
   function showError(heading, text) {
