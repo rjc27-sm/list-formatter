@@ -350,14 +350,26 @@
       display: none !important;
     }
 
+    .type-selector-section {
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      background-color: #f8fafc;
+      padding: 1rem 1.5rem;
+    }
+
+    .type-selector-hint {
+      font-size: 0.875rem;
+      color: #475569;
+      margin-bottom: 0.625rem;
+    }
+
     .type-selector {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 0.25rem 1rem;
-      padding: 0.875rem 1.5rem;
-      border-top: 1px solid #e2e8f0;
-      background-color: #f8fafc;
       font-size: 0.8125rem;
       color: #475569;
     }
@@ -570,14 +582,6 @@
           <p>Enter your lead-in on the first line, then list items below. For a second level, indent the sub-items or mark them with a dash or letter.</p>
         </div>
         <textarea id="input" placeholder="Enter your list here"></textarea>
-        <div class="type-selector">
-          <span class="type-selector-label">List type</span>
-          <label><input type="radio" name="listType" value="auto" checked> Auto-detect</label>
-          <label><input type="radio" name="listType" value="sentence"> Sentence</label>
-          <label><input type="radio" name="listType" value="fragment"> Fragment</label>
-          <label><input type="radio" name="listType" value="standAlone"> Stand-alone</label>
-          <label><input type="radio" name="listType" value="multilevel"> Multi-level</label>
-        </div>
       </div>
 
       <!-- Output Panel -->
@@ -591,6 +595,20 @@
         <div class="output-container">
           <pre id="output">Your formatted list will appear here</pre>
         </div>
+      </div>
+    </div>
+
+    <!-- List type selector -->
+    <div class="type-selector-section">
+      <p class="type-selector-hint">Not what you expected to see? Try a different list type to see how the formatting changes.</p>
+      <div class="type-selector">
+        <span class="type-selector-label">List type</span>
+        <label><input type="radio" name="listType" value="auto" checked> Auto-detect</label>
+        <label><input type="radio" name="listType" value="sentence"> Sentence</label>
+        <label><input type="radio" name="listType" value="fragment"> Fragment</label>
+        <label><input type="radio" name="listType" value="standAlone"> Stand-alone</label>
+        <label><input type="radio" name="listType" value="multilevel"> Multi-level</label>
+        <label><input type="radio" name="listType" value="numbered"> Numbered</label>
       </div>
     </div>
 
@@ -965,7 +983,7 @@ function formatStandAlone(rawLeadIn, cleaned, numbered) {
   let out = rawLeadIn.trim().replace(/:\s*$/, '') + '\n';
   cleaned.forEach((c, i) => {
     let t = c.text.charAt(0).toUpperCase() + c.text.slice(1);
-    out += numbered ? `${marker(numbered, i)} ${t}\n` : `${t}\n`;
+    out += `${marker(numbered, i)} ${t}\n`;
   });
   return out.trim();
 }
@@ -1085,7 +1103,7 @@ function formatMultilevel(rawLeadIn, rows, listType, ordered) {
   return out.trim();
 }
 
-function analyseMultilevel(rawLeadIn, h, forcedType) {
+function analyseMultilevel(rawLeadIn, h, forcedType, forceNumbered) {
   const capCorrected = [], capFlagged = [];
   h.rows.forEach(r => {
     const c = cleanItem(r.line);
@@ -1132,12 +1150,13 @@ function analyseMultilevel(rawLeadIn, h, forcedType) {
     else listType = leadInType === 'sentence' ? 'sentence' : 'fragment';
   }
 
-  const formatted = formatMultilevel(rawLeadIn, h.rows, listType, h.ordered);
+  const ordered = forceNumbered ? true : h.ordered;
+  const formatted = formatMultilevel(rawLeadIn, h.rows, listType, ordered);
 
-  const secondLevel = h.ordered
+  const secondLevel = ordered
     ? 'lowercase letters (a, b, c) for the second level'
     : 'a dash (\u2013) for the second level';
-  const firstLevel = h.ordered ? 'numbers' : 'bullets';
+  const firstLevel = ordered ? 'numbers' : 'bullets';
 
   let casing;
   if (listType === 'fragment') casing = 'Items are lower-case (unless they start with a proper noun) and only the very last item takes a full stop.';
@@ -1145,7 +1164,7 @@ function analyseMultilevel(rawLeadIn, h, forcedType) {
   else casing = 'Each item starts with a capital letter and takes no end punctuation.';
 
   let explanation =
-    `This is a multilevel ${h.ordered ? 'ordered' : 'unordered'} list. ` +
+    `This is a multilevel ${ordered ? 'ordered' : 'unordered'} list. ` +
     `It uses ${firstLevel} for the first level and ${secondLevel}, as the Style Manual requires. ` +
     'Keep multilevel lists to 2 levels and use them sparingly, since they are harder to follow. ' +
     casing + ' Each level should be parallel within itself.';
@@ -1167,7 +1186,7 @@ function analyseMultilevel(rawLeadIn, h, forcedType) {
 
 // ---- Top-level analyse ----
 
-function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlone' */) {
+function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlone' */, forceNumbered) {
   if (!input || !input.trim()) {
     return { status: 'empty', message: 'Enter a lead-in on the first line, then your list items below.' };
   }
@@ -1184,7 +1203,7 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
 
   const hierarchy = parseHierarchy(rawItems);
   if (hierarchy.multilevel) {
-    return analyseMultilevel(rawLeadIn, hierarchy, forcedType);
+    return analyseMultilevel(rawLeadIn, hierarchy, forcedType, forceNumbered);
   }
 
   const d = detect(rawLeadIn, rawItems);
@@ -1225,7 +1244,7 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
   const fixes = collectFixes(d.cleaned);
   // Preserve numbering if most items were typed as a numbered list (order matters).
   const numberedCount = rawItems.filter(l => /^\s*\d+[.)]\s/.test(l)).length;
-  const numbered = numberedCount >= Math.ceil(rawItems.length / 2);
+  const numbered = forceNumbered || (numberedCount >= Math.ceil(rawItems.length / 2));
   const orderNote = numbered
     ? ' I kept the numbers because the order looks deliberate \u2013 the Style Manual uses numbered lists only when sequence matters, so switch to bullets if it doesn\u2019t.'
     : '';
@@ -1292,6 +1311,9 @@ function parallelNote(kind, listType) {
   if (listType === 'standAlone') return 'The items are parallel \u2013 they all follow the same pattern.';
   if (kind === 'complete statements') return 'The items are parallel \u2013 they\u2019re all complete statements.';
   if (kind === 'commands that start with a verb') return 'The items are parallel \u2013 they all start with a verb in the same form.';
+  // Don't output a phrase-based note for sentence lists \u2014 the items may be phrases that were
+  // forced into sentence format, and saying 'they're all phrases' would be contradictory.
+  if (listType === 'sentence') return '';
   if (kind === 'noun phrases') return 'The items are parallel \u2013 they\u2019re all noun phrases.';
   return 'The items look parallel \u2013 they\u2019re all phrases.';
 }
@@ -1300,6 +1322,7 @@ function parallelNote(kind, listType) {
 // otherwise a simple read-through.
 function closingCheck(d, listType) {
   if (listType === 'standAlone') return ' Read them through once to confirm.';
+  if (listType === 'sentence') return ' Read them through to confirm each item reads as a complete sentence.';
   if (d.needsConnector) return ' Read the lead-in with each list item to check each one flows smoothly and is grammatically correct.';
   return ' Read them through once after the lead-in to confirm each one fits.';
 }
@@ -1356,7 +1379,10 @@ function collectFixes(cleaned) {
 
   function analyseList() {
     const input = document.getElementById('input').value;
-    const result = analyse(input, getForcedType());
+    const raw = document.querySelector('input[name="listType"]:checked')?.value || 'auto';
+    const forceNumbered = raw === 'numbered';
+    const forcedType = (raw === 'auto' || raw === 'multilevel' || raw === 'numbered') ? null : raw;
+    const result = analyse(input, forcedType, forceNumbered);
 
     if (result.status === 'empty') {
       showError('Nothing to format yet', result.message);
