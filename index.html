@@ -105,6 +105,32 @@
     .output-panel .panel-header {
       background: linear-gradient(to right, #f1f5f9, #e2e8f0);
       border-bottom-color: #cbd5e1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .output-panel .panel-header-text {
+      flex: 1;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      padding: 0.5rem 1.25rem;
+      background-color: #0f172a;
+      color: #ffffff;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 0.25rem;
+    }
+
+    .copy-btn:hover {
+      background-color: #1e293b;
     }
 
     .panel-header h2 {
@@ -204,6 +230,7 @@
       border: 1px solid #bfdbfe;
       border-radius: 0.5rem;
       padding: 1.5rem;
+      margin-top: 1.5rem;
       margin-bottom: 2rem;
       animation: slide-up 0.4s ease-out;
     }
@@ -555,8 +582,11 @@
       <!-- Output Panel -->
       <div class="panel output-panel">
         <div class="panel-header">
-          <h2>Formatted list</h2>
-          <p>Your properly formatted content</p>
+          <div class="panel-header-text">
+            <h2>Formatted list</h2>
+            <p>Your properly formatted content</p>
+          </div>
+          <button class="copy-btn hidden" id="copyBtn">Copy list</button>
         </div>
         <div class="output-container">
           <pre id="output">Your formatted list will appear here</pre>
@@ -579,14 +609,9 @@
       </div>
     </div>
 
-    <!-- Copy Button -->
-    <div style="display: flex; justify-content: center; margin-top: 1.5rem; margin-bottom: 2rem;">
-      <button class="hidden" id="copyBtn" style="padding: 0.75rem 2rem; background-color: #0f172a; color: #ffffff; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">Copy list</button>
-    </div>
-
     <!-- Explanation -->
     <div id="explanation" class="explanation hidden">
-      <h3>Why this works</h3>
+      <h3>Explanation</h3>
       <p id="explanationText"></p>
     </div>
 
