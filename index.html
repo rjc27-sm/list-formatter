@@ -874,9 +874,11 @@ function detect(rawLeadIn, rawItems) {
   //    lead-in reads as a full sentence (the items complete it, e.g. 'held [in]: T1…').
   //  - Imperatives ('use everyday words') can sit in either, so follow the lead-in:
   //    a complete-sentence lead-in → sentence list; a phrase lead-in → fragment list.
+  //  - Heading + full sentences (subject + finite verb) → sentence list (Style Manual).
+  //  - Heading + fragments/phrases/nouns             → stand-alone list.
   let listType;
   if (leadInType === 'heading') {
-    listType = 'standAlone';
+    listType = allClause ? 'sentence' : 'standAlone';
   } else if (allClause) {
     listType = 'sentence';
   } else if (allPhrase) {
@@ -1197,10 +1199,23 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
       'In a fragment list, items begin with a lower-case letter (unless they start with a proper noun) and only the final item takes a full stop. ' +
       parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + orderNote;
   } else if (listType === 'sentence') {
-    formatted = formatSentence(rawLeadIn, d.cleaned, numbered);
-    const reason = d.leadInType === 'sentence'
-      ? `The lead-in \u2018${buildLeadIn(rawLeadIn, false)}\u2019 is a complete sentence`
-      : 'Each item is a complete statement that can stand on its own';
+    if (d.leadInType === 'heading') {
+      // Heading: no colon — build the sentence-list items with plain heading line.
+      const headingLine = rawLeadIn.trim().replace(/:\s*$/, '');
+      let out = headingLine + '\n';
+      d.cleaned.forEach((c, i) => {
+        const t = c.text.charAt(0).toUpperCase() + c.text.slice(1);
+        out += `${marker(numbered, i)} ${t}.\n`;
+      });
+      formatted = out.trim();
+    } else {
+      formatted = formatSentence(rawLeadIn, d.cleaned, numbered);
+    }
+    const reason = d.leadInType === 'heading'
+      ? `\u2018${buildLeadIn(rawLeadIn, false)}\u2019 is a heading, and each item is a complete sentence`
+      : d.leadInType === 'sentence'
+        ? `The lead-in \u2018${buildLeadIn(rawLeadIn, false)}\u2019 is a complete sentence`
+        : 'Each item is a complete statement that can stand on its own';
     explanation =
       `This is a sentence list. ${reason}, so every item starts with a capital letter and ends with a full stop. ` +
       parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + orderNote;
@@ -1211,6 +1226,18 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
       'so each item starts with a capital letter and takes no end punctuation \u2013 not even the last one. ' +
       parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + orderNote +
       ' Style Manual tip: headings use sentence case (capitalise only the first word and any proper nouns), so check the heading\u2019s capitals.';
+  }
+
+  // Check if the input was already correctly formatted (compare normalised raw against output).
+  const noColon = listType === 'standAlone' || (listType === 'sentence' && d.leadInType === 'heading');
+  const expectedFirstLine = noColon
+    ? rawLeadIn.trim().replace(/:\s*$/, '')
+    : buildLeadIn(rawLeadIn, true);
+  const rawNorm = [expectedFirstLine].concat(
+    rawItems.map((item, i) => `${marker(numbered, i)} ${stripMarker(item).trim()}`)
+  ).join('\n');
+  if (rawNorm === formatted) {
+    explanation = 'Your list is correctly formatted. ' + explanation;
   }
 
   return { status: 'ok', listType, formatted, explanation, detail: d };
@@ -1304,7 +1331,14 @@ function collectFixes(cleaned) {
 
     // success
     document.getElementById('errorPanel').classList.add('hidden');
-    document.getElementById('output').textContent = result.formatted;
+    const outputEl = document.getElementById('output');
+    if (result.listType === 'standAlone') {
+      const lines = result.formatted.split('\n');
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      outputEl.innerHTML = '<strong>' + esc(lines[0]) + '</strong>' + (lines.length > 1 ? '\n' + lines.slice(1).map(esc).join('\n') : '');
+    } else {
+      outputEl.textContent = result.formatted;
+    }
     document.getElementById('explanationText').textContent = result.explanation;
     document.getElementById('explanation').classList.remove('hidden');
     document.getElementById('copyBtn').classList.remove('hidden');
