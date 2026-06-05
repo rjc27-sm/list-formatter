@@ -165,9 +165,31 @@ console.log('\n9. Already-correct detection');
   ok('already-correct prefix', r.explanation.startsWith('Your list is correctly formatted.'));
 }
 
-// ---- 10. Forced sentence list — no contradictory phrase note ---------------
+// ---- 10. Three-level list: tooDeep preserved, ▪ marker, note appended ------
 
-console.log('\n10. Forced sentence type — no contradictory phrase note');
+console.log('\n10. Three-level list — levels preserved, ▪ marker, note appended');
+{
+  const input =
+    'There are many types of birds in Australia, including:\n' +
+    '• nocturnal birds\n' +
+    '  – frogmouths\n' +
+    '    ▪ tawny\n' +
+    '    ▪ non-tawny\n' +
+    '  – nightjars\n' +
+    '• marsh birds\n' +
+    '  – crakes\n' +
+    '  – snipes.';
+  const r = analyse(input);
+  ok('status ok',              r.status === 'ok');
+  ok('multilevel flag',        r.multilevel === true);
+  ok('level-2 ▪ in output',   r.formatted.includes('▪ tawny'));
+  ok('tooDeep note present',  r.explanation.includes('3 levels'));
+  ok('last item ends .',       r.formatted.trimEnd().endsWith('.'));
+}
+
+// ---- 11. Forced sentence list — no contradictory phrase note ---------------
+
+console.log('\n11. Forced sentence type — no contradictory phrase note');
 {
   const r = analyse(
     "What's on across government\n• Budget 2025\n• APS reform\n• Digital transformation",
@@ -179,9 +201,9 @@ console.log('\n10. Forced sentence type — no contradictory phrase note');
   ok('no "confirm each one fits"',   !r.explanation.includes('confirm each one fits'));
 }
 
-// ---- 11. Forced numbered list ----------------------------------------------
+// ---- 12. Forced numbered list ----------------------------------------------
 
-console.log('\n11. Forced numbered list');
+console.log('\n12. Forced numbered list');
 {
   const r = analyse(
     'There are 3 ways to contact us:\n• email\n• online form\n• telephone.',
@@ -193,9 +215,9 @@ console.log('\n11. Forced numbered list');
   ok('fragment type still',  r.listType === 'fragment');
 }
 
-// ---- 12. DOM: .hidden display:none !important still wins -------------------
+// ---- 13. DOM: .hidden display:none !important still wins -------------------
 
-console.log('\n12. CSS cascade — .hidden wins (display:none !important)');
+console.log('\n13. CSS cascade — .hidden wins (display:none !important)');
 {
   const el = window.document.createElement('button');
   el.className = 'hidden copy-btn';
@@ -206,18 +228,18 @@ console.log('\n12. CSS cascade — .hidden wins (display:none !important)');
   window.document.body.removeChild(el);
 }
 
-// ---- 13. DOM: copy button hidden on load, shown after format ---------------
+// ---- 14. DOM: copy button hidden on load, shown after format ---------------
 
-console.log('\n13. DOM wiring — copy button hidden on load');
+console.log('\n14. DOM wiring — copy button hidden on load');
 {
   const copyBtn = window.document.getElementById('copyBtn');
   ok('copyBtn exists',         !!copyBtn);
   ok('copyBtn hidden on load', copyBtn.classList.contains('hidden'));
 }
 
-// ---- 14. DOM: report modal pre-fill ----------------------------------------
+// ---- 15. DOM: report modal pre-fill ----------------------------------------
 
-console.log('\n14. DOM — report modal pre-fill');
+console.log('\n15. DOM — report modal pre-fill');
 {
   const inputEl = window.document.getElementById('input');
   const reportBtn = window.document.getElementById('reportOpenBtn');

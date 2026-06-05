@@ -288,8 +288,8 @@ function isBaseVerb(word) {
 // Strip leading bullet/number markers and surrounding whitespace.
 function stripMarker(item) {
   return item
-    .replace(/^\s*[-–—•*‣◦·○]\s*/, '')
-    .replace(/^\s*[○◦o]\s+/, '')          // hollow bullets incl. Word's letter 'o'
+    .replace(/^\s*[-–—•*‣◦·○▪■]\s*/, '')  // includes filled-square level-3 markers
+    .replace(/^\s*[○◦o]\s+/, '')            // hollow bullets incl. Word's letter 'o'
     .replace(/^\s*\d+[.)]\s*/, '')
     .replace(/^\s*[a-z][.)]\s*/i, '')
     .trim();
@@ -566,11 +566,12 @@ function markerKind(noIndent) {
   if (/^[A-Z][.)]\s/.test(noIndent)) return 'upperLetter';
   if (/^[–—-]\s/.test(noIndent)) return 'dash';
   if (/^[○◦o]\s/.test(noIndent)) return 'hollow';
+  if (/^[▪■]\s/.test(noIndent)) return 'square';   // filled-square: level-3 marker
   if (/^[•·*‣]\s/.test(noIndent)) return 'bullet';
   return 'none';
 }
 
-// Work out whether the items form a 2-level hierarchy, and assign each a level.
+// Work out whether the items form a 2- or 3-level hierarchy, and assign each a level.
 function parseHierarchy(rawItems) {
   const rows = rawItems.map(line => {
     const indent = leadingWidth(line);
@@ -581,19 +582,42 @@ function parseHierarchy(rawItems) {
   const base = indents[0];
 
   let multilevel = false, tooDeep = false;
-  if (indents.length >= 2) {
+
+  // Marker-based detection takes priority over indentation alone.
+  // When items carry explicit child/grandchild markers (hollow bullets, dashes, squares),
+  // use those to assign levels regardless of indentation. This correctly handles Word
+  // pastes where 'o' items share indent=0 with '•' items but are visually sub-items.
+  const level1Kinds = new Set(['dash', 'hollow', 'lowerLetter']);
+  const level2Kinds = new Set(['square']);
+  const hasL1Marker = rows.some(r => level1Kinds.has(r.marker));
+  const hasL2Marker = rows.some(r => level2Kinds.has(r.marker));
+
+  if (hasL1Marker || hasL2Marker) {
     multilevel = true;
-    if (indents.length >= 3) tooDeep = true;
-    rows.forEach(r => { r.level = r.indent > base ? 1 : 0; });
-  } else {
-    const parentKinds = new Set(['number', 'bullet', 'none', 'upperLetter']);
-    const childKinds = new Set(['dash', 'hollow', 'lowerLetter']);
-    const hasParent = rows.some(r => parentKinds.has(r.marker));
-    const hasChild = rows.some(r => childKinds.has(r.marker));
-    if (hasParent && hasChild) {
-      multilevel = true;
-      rows.forEach(r => { r.level = childKinds.has(r.marker) ? 1 : 0; });
-    }
+    if (hasL2Marker) tooDeep = true;
+    const maxMarkedChildLevel = hasL2Marker ? 2 : 1;
+    rows.forEach(r => {
+      if (level2Kinds.has(r.marker)) {
+        r.level = 2;
+      } else if (level1Kinds.has(r.marker)) {
+        r.level = 1;
+      } else if (r.marker === 'none' && r.indent > base) {
+        // An unmarked item indented deeper than its siblings is a grandchild
+        // (e.g. plain-text level-3 items that carry no marker character).
+        r.level = maxMarkedChildLevel + 1;
+        tooDeep = true;
+      } else {
+        r.level = 0;   // bullet, number, upperLetter, or unindented 'none'
+      }
+    });
+  } else if (indents.length >= 2) {
+    // Pure indent-based: no marker hierarchy detected. Preserve actual indent levels.
+    multilevel = true;
+    tooDeep = indents.length >= 3;
+    rows.forEach(r => {
+      const idx = indents.indexOf(r.indent);
+      r.level = idx;  // 0, 1, 2 … matching the sorted distinct indents
+    });
   }
 
   // An item that appears before any parent can't be a child – treat it as a parent.
@@ -639,10 +663,13 @@ function formatMultilevel(rawLeadIn, rows, listType, ordered) {
       childNo = 0;
       const marker = ordered ? `${parentNo}.` : '\u2022';
       out += `${marker} ${text}\n`;
-    } else {
+    } else if (r.level === 1) {
       const marker = ordered ? `${letterFor(childNo)}.` : '\u2013';
       childNo += 1;
       out += `    ${marker} ${text}\n`;
+    } else {
+      // Level 2 (third level): filled square marker, indented 8 spaces.
+      out += `        \u25aa ${text}\n`;
     }
   });
   return out.trim();
@@ -662,6 +689,7 @@ function analyseMultilevel(rawLeadIn, h, forcedType, forceNumbered) {
 
   const lvl0 = h.rows.filter(r => r.level === 0);
   const lvl1 = h.rows.filter(r => r.level === 1);
+  const lvl2 = h.rows.filter(r => r.level === 2);
 
   // Each level must be internally parallel.
   const gateLevel = (rows) => {
@@ -672,8 +700,14 @@ function analyseMultilevel(rawLeadIn, h, forcedType, forceNumbered) {
   };
   const m0 = gateLevel(lvl0);
   const m1 = lvl1.length ? gateLevel(lvl1) : null;
-  if (m0 || m1) {
-    const where = m0 && m1 ? 'both levels' : (m0 ? 'the first level' : 'the second level');
+  const m2 = lvl2.length ? gateLevel(lvl2) : null;
+  if (m0 || m1 || m2) {
+    const problemLevels = [];
+    if (m0) problemLevels.push('the first level');
+    if (m1) problemLevels.push('the second level');
+    if (m2) problemLevels.push('the third level');
+    const where = problemLevels.length === 1 ? problemLevels[0]
+      : problemLevels.slice(0, -1).join(', ') + ' and ' + problemLevels[problemLevels.length - 1];
     const message =
       'This list can\u2019t be formatted yet.\n\n' +
       `Parallel structure issue at ${where}: the items there aren\u2019t all the same grammatical form. ` +
@@ -689,7 +723,7 @@ function analyseMultilevel(rawLeadIn, h, forcedType, forceNumbered) {
 
   let listType = forcedType;
   if (!listType) {
-    if (leadInType === 'heading') listType = 'standAlone';
+    if (leadInType === 'heading') listType = allClause ? 'sentence' : 'standAlone';
     else if (allClause) listType = 'sentence';
     else if (allPhrase) listType = 'fragment';
     else listType = leadInType === 'sentence' ? 'sentence' : 'fragment';
@@ -711,11 +745,12 @@ function analyseMultilevel(rawLeadIn, h, forcedType, forceNumbered) {
   let explanation =
     `This is a multilevel ${ordered ? 'ordered' : 'unordered'} list. ` +
     `It uses ${firstLevel} for the first level and ${secondLevel}, as the Style Manual requires. ` +
+    (h.tooDeep ? 'I formatted the third level with a filled square (\u25aa). ' : '') +
     'Keep multilevel lists to 2 levels and use them sparingly, since they are harder to follow. ' +
     casing + ' Each level should be parallel within itself.';
 
   if (h.tooDeep) {
-    explanation += ' I treated this as 2 levels \u2013 the Style Manual says don\u2019t use more than 2, so check that anything deeper has folded in correctly.';
+    explanation += ' This list has 3 levels \u2013 consider simplifying it to 2.';
   }
   explanation += capsNote({ capCorrected, capFlagged }) + collectFixes(h.rows.map(r => ({ flags: r.flags })));
   if (listType === 'fragment') {
@@ -845,11 +880,12 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
   const rawNorm = [expectedFirstLine].concat(
     rawItems.map((item, i) => `${marker(numbered, i)} ${stripMarker(item).trim()}`)
   ).join('\n');
-  if (rawNorm === formatted) {
+  const alreadyCorrect = rawNorm === formatted;
+  if (alreadyCorrect) {
     explanation = 'Your list is correctly formatted. ' + explanation;
   }
 
-  return { status: 'ok', listType, formatted, explanation, detail: d };
+  return { status: 'ok', listType, formatted, explanation, alreadyCorrect, detail: d };
 }
 
 function parallelNote(kind, listType) {
@@ -948,16 +984,20 @@ function collectFixes(cleaned) {
     // success
     document.getElementById('errorPanel').classList.add('hidden');
     const outputEl = document.getElementById('output');
-    if (result.listType === 'standAlone') {
+    if (result.alreadyCorrect) {
+      outputEl.textContent = 'Your list is correctly formatted.';
+      document.getElementById('copyBtn').classList.add('hidden');
+    } else if (result.listType === 'standAlone') {
       const lines = result.formatted.split('\n');
       const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       outputEl.innerHTML = '<strong>' + esc(lines[0]) + '</strong>' + (lines.length > 1 ? '\n' + lines.slice(1).map(esc).join('\n') : '');
+      document.getElementById('copyBtn').classList.remove('hidden');
     } else {
       outputEl.textContent = result.formatted;
+      document.getElementById('copyBtn').classList.remove('hidden');
     }
     document.getElementById('explanationText').textContent = result.explanation;
     document.getElementById('explanation').classList.remove('hidden');
-    document.getElementById('copyBtn').classList.remove('hidden');
   }
 
   function flashCopyBtn(label) {
@@ -1092,6 +1132,116 @@ function collectFixes(cleaned) {
       '&body=' + encodeURIComponent(buildReportText());
     window.location.href = url;
   }
+
+  // ---- Paste handler: restore bullet markers from HTML clipboard data ----
+  // When text is copied from Word (or Google Docs), the browser clipboard holds both
+  // a plain-text version (which often strips bullet characters) and an HTML version
+  // (which preserves the full list structure). We read the HTML version and rebuild
+  // the text with the correct • – ▪ markers before inserting into the textarea.
+
+  function reconstructListText(html) {
+    // Use DOMParser so the full Word document structure (html/head/body/style) is
+    // handled correctly. Setting div.innerHTML with a complete Word document causes
+    // the <style> block text to appear as visible content and breaks the DOM structure.
+    let doc;
+    try { doc = (new DOMParser()).parseFromString(html, 'text/html'); }
+    catch (e) { return null; }
+    const lines = [];
+
+    // ── Word mso-list format ──────────────────────────────────────────────────
+    // Two-attribute selector: list paragraphs have BOTH 'mso-list' AND 'level' in
+    // their inline style (e.g. 'mso-list:l0 level1 lfo1').  Bullet-placeholder spans
+    // only have 'mso-list:Ignore' – no 'level' – so they are excluded automatically.
+    const msoItems = Array.from(doc.querySelectorAll('[style*="mso-list"][style*="level"]'));
+    if (msoItems.length) {
+      // Capture the immediately preceding paragraph as the lead-in (if any).
+      const par = msoItems[0].parentElement;
+      if (par) {
+        let leadIn = null;
+        for (const el of Array.from(par.children)) {
+          if (el === msoItems[0]) break;
+          const t = el.textContent.replace(/\s+/g, ' ').trim();
+          if (t) leadIn = t;
+        }
+        if (leadIn) lines.push(leadIn);
+      }
+      for (const el of msoItems) {
+        const m = (el.getAttribute('style') || '').match(/level(\d+)/i);
+        const level = m ? Math.max(0, parseInt(m[1]) - 1) : 0;
+        // Clone and strip any remaining bullet-placeholder spans before reading text.
+        // Word wraps them in <!--[if !supportLists]-->…<!--[endif]--> which modern
+        // browsers parse as real comments, leaving the spans in the DOM.
+        const clone = el.cloneNode(true);
+        Array.from(clone.querySelectorAll('[style*="Ignore"]')).forEach(n => n.remove());
+        const text = clone.textContent.replace(/\s+/g, ' ').trim();
+        if (!text) continue;
+        const mk = level === 0 ? '•' : level === 1 ? '–' : '▪';
+        lines.push(mk + '\t' + text);
+      }
+      if (lines.length) return lines.join('\n');
+    }
+
+    // ── Standard HTML list format (<ul>/<ol>/<li>) ───────────────────────────
+    const body = doc.body;
+    if (!body) return null;
+
+    // Capture lead-in text before the first list element.
+    for (const child of Array.from(body.children)) {
+      const tag = child.tagName.toUpperCase();
+      if (tag === 'UL' || tag === 'OL' || child.querySelector('ul,ol')) break;
+      if ((child.getAttribute('style') || '').includes('mso-list')) break;
+      const t = child.textContent.replace(/\s+/g, ' ').trim();
+      if (t) lines.push(t);
+    }
+
+    function walkList(listEl, depth) {
+      const ordered = listEl.tagName.toUpperCase() === 'OL';
+      let n = 1;
+      for (const child of Array.from(listEl.children)) {
+        if (child.tagName.toUpperCase() !== 'LI') continue;
+        let text = '';
+        for (const node of Array.from(child.childNodes)) {
+          const tag = node.tagName ? node.tagName.toUpperCase() : '';
+          if (node.nodeType === 3) text += node.textContent;
+          else if (tag !== 'UL' && tag !== 'OL') text += node.textContent;
+        }
+        text = text.replace(/\s+/g, ' ').trim();
+        if (text) {
+          const mk = depth > 1 ? '▪' : depth === 1 ? '–'
+            : (ordered ? n + '.' : '•');
+          lines.push(mk + '\t' + text);
+          if (ordered) n++;
+        }
+        for (const node of Array.from(child.childNodes)) {
+          const tag = node.tagName ? node.tagName.toUpperCase() : '';
+          if (tag === 'UL' || tag === 'OL') walkList(node, depth + 1);
+        }
+      }
+    }
+
+    const topLists = Array.from(body.children).filter(
+      el => ['UL', 'OL'].includes(el.tagName.toUpperCase())
+    );
+    if (!topLists.length) {
+      const first = body.querySelector('ul,ol');
+      if (!first) return null;
+      topLists.push(first);
+    }
+    for (const list of topLists) walkList(list, 0);
+    return lines.length ? lines.join('\n') : null;
+  }
+
+  document.getElementById('input').addEventListener('paste', function (e) {
+    const html = e.clipboardData && e.clipboardData.getData('text/html');
+    if (!html) return;                       // no HTML on clipboard – use browser default
+    const text = reconstructListText(html);
+    if (!text) return;                       // couldn't identify a list – use browser default
+    e.preventDefault();
+    const ta = this;
+    const s = ta.selectionStart, end = ta.selectionEnd;
+    ta.value = ta.value.slice(0, s) + text + ta.value.slice(end);
+    ta.selectionStart = ta.selectionEnd = s + text.length;
+  });
 
   document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
   document.getElementById('reportOpenBtn').addEventListener('click', openReport);
