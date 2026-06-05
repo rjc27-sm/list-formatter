@@ -701,6 +701,7 @@ function isBaseVerb(word) {
 function stripMarker(item) {
   return item
     .replace(/^\s*[-–—•*‣◦·○]\s*/, '')
+    .replace(/^\s*[○◦o]\s+/, '')          // hollow bullets incl. Word's letter 'o'
     .replace(/^\s*\d+[.)]\s*/, '')
     .replace(/^\s*[a-z][.)]\s*/i, '')
     .trim();
@@ -947,10 +948,17 @@ function formatStandAlone(rawLeadIn, cleaned, numbered) {
 function lowerFirstUnlessProper(t) {
   // Keep as-is if the item looks like it starts with a proper noun, acronym or code.
   const first = t.split(/\s+/)[0];
-  if (/\d/.test(first)) return t;                     // codes/labels e.g. T1, T11, Q1, COVID19
-  if (/^[A-Z]{2,}$/.test(first)) return t;            // acronym e.g. AIHW
+  if (/\d/.test(first)) return t;                     // codes/labels e.g. T1, M365
+  if (/^[A-Z]+$/.test(first)) return t;               // all-caps acronym, incl. single-letter (e.g. R, AIHW)
   if (/^[A-Z][a-z]+/.test(first) && PROPER_HINT.test(first)) return t;
   return t.charAt(0).toLowerCase() + t.slice(1);
+}
+
+// Return first words that will be lowercased, so the explanation can flag them.
+function lowercasedFirstWords(cleanedItems) {
+  return cleanedItems
+    .map(c => c.text.split(/\s+/)[0])
+    .filter(w => /^[A-Z]/.test(w) && !(/\d/.test(w)) && !(/^[A-Z]+$/.test(w)) && !PROPER_HINT.test(w));
 }
 // Heuristic proper-noun hint kept intentionally narrow; default is to lowercase.
 const PROPER_HINT = /^(Australia|Australian|Canberra|Adelaide|Medicare|AIHW|APSC|Commonwealth|Indigenous|First|Aboriginal|Torres|NSW|ACT|Sydney|Melbourne)$/;
@@ -1056,6 +1064,7 @@ function analyseMultilevel(rawLeadIn, h, forcedType) {
   const capCorrected = [], capFlagged = [];
   h.rows.forEach(r => {
     const c = cleanItem(r.line);
+    if (r.level === 0) c.text = c.text.replace(/:\s*$/, '');  // strip structural colon from parent items
     const caps = processCaps(c.text);
     r.text = caps.text;
     r.flags = c.flags;
@@ -1120,6 +1129,13 @@ function analyseMultilevel(rawLeadIn, h, forcedType) {
     explanation += ' I treated this as 2 levels \u2013 the Style Manual says don\u2019t use more than 2, so check that anything deeper has folded in correctly.';
   }
   explanation += capsNote({ capCorrected, capFlagged }) + collectFixes(h.rows.map(r => ({ flags: r.flags })));
+  if (listType === 'fragment') {
+    const allCleaned = h.rows.map(r => ({ text: r.text }));
+    const lowered = lowercasedFirstWords(allCleaned);
+    if (lowered.length) {
+      explanation += ` I lower-cased the first letter of ${quoteList(lowered)} – restore the capital if ${lowered.length === 1 ? 'it is' : 'any are'} a proper noun (such as a product name or organisation).`;
+    }
+  }
 
   return { status: 'ok', listType, formatted, explanation, multilevel: true };
 }
@@ -1194,10 +1210,14 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
     const fragReason = d.leadInType === 'sentence'
       ? `Each item is a phrase that completes the lead-in \u2018${buildLeadIn(rawLeadIn, false)}\u2019 rather than a sentence in its own right`
       : `The lead-in \u2018${buildLeadIn(rawLeadIn, false)}\u2019 is a phrase rather than a complete sentence, so each item finishes the thought it starts`;
+    const lowered = lowercasedFirstWords(d.cleaned);
+    const loweredNote = lowered.length
+      ? ` I lower-cased the first letter of ${quoteList(lowered)} \u2013 restore the capital if ${lowered.length === 1 ? 'it is' : 'any are'} a proper noun (such as a product name or organisation).`
+      : '';
     explanation =
       `This is a fragment list. ${fragReason}. ` +
       'In a fragment list, items begin with a lower-case letter (unless they start with a proper noun) and only the final item takes a full stop. ' +
-      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + orderNote;
+      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + loweredNote + orderNote;
   } else if (listType === 'sentence') {
     if (d.leadInType === 'heading') {
       // Heading: no colon — build the sentence-list items with plain heading line.
