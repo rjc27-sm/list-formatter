@@ -215,9 +215,21 @@ console.log('\n12. Forced numbered list');
   ok('fragment type still',  r.listType === 'fragment');
 }
 
-// ---- 13. DOM: .hidden display:none !important still wins -------------------
+// ---- 13. Numbered sentence list — imperative items all ending with full stops
 
-console.log('\n13. CSS cascade — .hidden wins (display:none !important)');
+console.log('\n13. Numbered sentence list — imperative items, phrase lead-in, all with full stops');
+{
+  const r = analyse('How to register for the conference:\n1. Choose the days you will attend.\n2. Pick the workshops you want to join.\n3. Enter your discount code (if you have one).');
+  ok('status ok',            r.status === 'ok');
+  ok('list type sentence',   r.listType === 'sentence');
+  ok('items capitalised',    r.formatted.includes('1. Choose') && r.formatted.includes('2. Pick'));
+  ok('each item ends .',     r.formatted.includes('attend.') && r.formatted.includes('join.'));
+  ok('already correct',      r.alreadyCorrect === true);
+}
+
+// ---- 14. DOM: .hidden display:none !important still wins -------------------
+
+console.log('\n14. CSS cascade — .hidden wins (display:none !important)');
 {
   const el = window.document.createElement('button');
   el.className = 'hidden copy-btn';
@@ -228,18 +240,18 @@ console.log('\n13. CSS cascade — .hidden wins (display:none !important)');
   window.document.body.removeChild(el);
 }
 
-// ---- 14. DOM: copy button hidden on load, shown after format ---------------
+// ---- 15. DOM: copy button hidden on load, shown after format ---------------
 
-console.log('\n14. DOM wiring — copy button hidden on load');
+console.log('\n15. DOM wiring — copy button hidden on load');
 {
   const copyBtn = window.document.getElementById('copyBtn');
   ok('copyBtn exists',         !!copyBtn);
   ok('copyBtn hidden on load', copyBtn.classList.contains('hidden'));
 }
 
-// ---- 15. DOM: report modal pre-fill ----------------------------------------
+// ---- 16. DOM: report modal pre-fill ----------------------------------------
 
-console.log('\n15. DOM — report modal pre-fill');
+console.log('\n16. DOM — report modal pre-fill');
 {
   const inputEl = window.document.getElementById('input');
   const reportBtn = window.document.getElementById('reportOpenBtn');

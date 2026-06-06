@@ -49,6 +49,8 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
   font:15px/1.7 'Open Sans',Arial,sans-serif;color:var(--c1)}
 .card-foot{border-top:1px solid var(--line);padding:11px 16px;display:flex;justify-content:flex-end;
   min-height:58px;align-items:center}
+.card-foot--start{justify-content:flex-start;gap:12px;flex-wrap:wrap}
+
 .copy-btn{display:inline-flex;align-items:center;gap:7px;background:var(--blue);color:#fff;border:none;
   border-radius:6px;padding:10px 18px;font:600 13.5px 'Open Sans',sans-serif;cursor:pointer;white-space:nowrap}
 .copy-btn:hover{background:var(--b2)}
@@ -77,7 +79,6 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
 .error-panel h3{font-size:15px;font-weight:700;color:var(--o2);margin:0 0 5px}
 .error-panel p{font-size:14.5px;line-height:1.65;color:#7a3d18;margin:0;white-space:pre-line}
 
-.actions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
 .btn{font:700 15px 'Open Sans',sans-serif;border-radius:8px;padding:12px 26px;cursor:pointer;border:none;
   min-height:46px;display:inline-flex;align-items:center;gap:8px}
 .btn-primary{background:var(--blue);color:#fff}
@@ -137,7 +138,7 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
     <div class="examples">
       <span class="ex-lab">Try an example</span>
       <button type="button" class="chip" onclick="loadExample('grant')">Grant eligibility</button>
-      <button type="button" class="chip" onclick="loadExample('docs')">Documents to bring</button>
+      <button type="button" class="chip" onclick="loadExample('docs')">Registration steps</button>
       <button type="button" class="chip" onclick="loadExample('meeting')">Meeting prep</button>
     </div>
   </header>
@@ -147,6 +148,10 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
       <div class="step-h"><span class="num">1</span><h2>Your content</h2><span class="step-hint">lead-in, then items</span></div>
       <div class="card">
         <textarea id="input" aria-label="Your content" placeholder="Enter your lead-in on the first line, then your list items below. For a second level, indent the sub-items or mark them with a dash."></textarea>
+        <div class="card-foot card-foot--start">
+          <button class="btn btn-primary" type="button" onclick="analyseList()">Format list</button>
+          <button class="btn btn-ghost" type="button" onclick="reset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>Reset</button>
+        </div>
       </div>
     </section>
     <section>
@@ -186,11 +191,6 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
       <h3>What changed</h3>
       <p id="explanationText"></p>
     </div>
-  </div>
-
-  <div class="actions">
-    <button class="btn btn-primary" type="button" onclick="analyseList()">Format list</button>
-    <button class="btn btn-ghost" type="button" onclick="reset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>Reset</button>
   </div>
 
   <div class="report-link-row">
@@ -461,10 +461,15 @@ function detect(rawLeadIn, rawItems) {
   //  - Independent statements ('You must…')           → sentence list.
   //  - Phrases / gerunds ('T1 on 1 April', 'cleaning') → fragment list, even when the
   //    lead-in reads as a full sentence (the items complete it, e.g. 'held [in]: T1…').
-  //  - Imperatives ('use everyday words') can sit in either, so follow the lead-in:
-  //    a complete-sentence lead-in → sentence list; a phrase lead-in → fragment list.
+  //  - Imperatives ('use everyday words') can sit in either, so follow the lead-in —
+  //    except when every raw item ends with a full stop (the author signals complete
+  //    sentences): then sentence list regardless of lead-in type.
   //  - Heading + full sentences (subject + finite verb) → sentence list (Style Manual).
   //  - Heading + fragments/phrases/nouns             → stand-alone list.
+  const allEndWithStop = rawItems.every(r => {
+    const s = stripMarker(r).trim();
+    return /^[A-Z]/.test(s) && /[.!?]\s*$/.test(s);
+  });
   let listType;
   if (leadInType === 'heading') {
     listType = allClause ? 'sentence' : 'standAlone';
@@ -473,7 +478,7 @@ function detect(rawLeadIn, rawItems) {
   } else if (allPhrase) {
     listType = 'fragment';
   } else {
-    listType = leadInType === 'sentence' ? 'sentence' : 'fragment';
+    listType = (leadInType === 'sentence' || allEndWithStop) ? 'sentence' : 'fragment';
   }
 
   // A fragment list whose lead-in doesn't end on a connecting word may not read
@@ -1261,7 +1266,7 @@ function collectFixes(cleaned) {
   // (mixed punctuation, stray capitals) so the formatter has something to fix.
   var EXAMPLES = {
     grant: "Your application must include:\n- a current ABN;\n- Proof of identity, and\n- 2 referees.",
-    docs: "Documents to bring\nPassport\nDriver licence\nBirth certificate",
+    docs: "How to register for the conference:\n1. Choose the days you will attend.\n2. Pick the workshops you want to join.\n3. Enter your discount code (if you have one).",
     meeting: "Before the meeting:\nConfirm the venue\n  Check seating\n  Test the microphone\nSend meeting pack\n  agenda\n  last month's minutes\n  agenda papers"
   };
   function loadExample(key){
