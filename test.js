@@ -183,7 +183,7 @@ console.log('\n10. Three-level list — levels preserved, ▪ marker, note appen
   ok('status ok',              r.status === 'ok');
   ok('multilevel flag',        r.multilevel === true);
   ok('level-2 ▪ in output',   r.formatted.includes('▪ tawny'));
-  ok('tooDeep note present',  r.explanation.includes('3 levels'));
+  ok('tooDeep note present',  r.explanation.includes('more than 2 levels deep'));
   ok('last item ends .',       r.formatted.trimEnd().endsWith('.'));
 }
 
