@@ -349,6 +349,8 @@ console.log('\n16. DOM — report modal pre-fill');
   const reportBtn = window.document.getElementById('reportOpenBtn');
   ok('input exists',       !!inputEl);
   ok('reportOpenBtn exists', !!reportBtn);
+  ok('favicon link present', !!window.document.querySelector('link[rel="icon"]'));
+  ok("no 'multi-level' in user-facing text", !window.document.body.textContent.includes('Multi-level') && !window.document.body.textContent.includes('multi-level'));
 }
 
 // ---- 17. Word HTML builder — markers and list definitions -------------------

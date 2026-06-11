@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Style Manual list formatter</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAANRElEQVR42t1bfXBU13X/3Xvf976VxCJgFImhpm4KzhgbWucPqsECZ0xTGZI6ZqY1TMeekE5MGOOZuMZTApYyY1Mr/oozk9p/NOPEcVHcYNce16Z2XYEduwMSpgFcQ6ADpgIbrC+k3ff2fdx7+sfuW4QsgbTdpTJ35s1otKunc373fPzOOfcyTLCIiAEQjLF4zO9dAMZ5ALWYditmjA2PkVcDIBljNN4fsAmU54wxVfzZDoLgTznnrUqpRQTMAWAREVAA6f99EQDOOQEIAZwTQnxISu3yff+Nurq6wbE6XRIAIhKMMfniiy+K1atXb+RC3Ktr2vzkc0UEpRTAGEA0rbafcQ7BLqgURtGnpNQzg4ODjzU0NOQS3SYEIPnC0NDQ79up1HOGpjVLpRAEgUyAnshqptGigioE0zSFJgTiOP4wDMO7UqlUz1gQ2FizHx4evs6yrH/Tdb3B8/2oGAc4voCLiAhA7Ni2HsdxLp/P35ZOp3ePBoGNVt73/d8TQryvaVqD5/sx51zDVbCUUtIwDAEiL4qillQq1Z3ozIvRHkSkEVFnceevGuVRCJAiDEOpaZrDhHiRiGqTTMeISGOMxb7vb7Qs6yee70eMMb1MpAsBsrrKgHNeriXEKcfRvHz+iZRtf7+rq0tjRQuwcr5/zDKMhiAMMVWfV0qBMQbHtq/Ijvr5PKSUEEJMOSZomkZKqbyM42td1/1EY4xRLpe7NeU4jZ7vS8bYlN4qpYSbSkEqhX3d3TjwwQfoHxgo7FKl0iRjUEqhpqYGN9xwA2666Sa4qRSyudyUQGCMsTiOpWPbjgesAfC0VvzkG0n6KEf5vXv3or29Hfv27oXn+6Aq8gPLsnD99ddjy5YtWLlyJXKeN1WXYAAISq0C8DQDAM/zum3b/mPP99VkzT9RfudLL+Gvv/MdhGGImpqasv1zKu6Wy+UQxzE6OjqwYcOGKYFARGSZJguCoNe27T9kRJTyff+IaZpN+SAgxhibjBC2ZaG7pwd/9vWvQwgB0zQhpQTnvGoWwIquwDmHUgpDQ0Po7OzE6tWrp+IOJIRgcRx7jm1fz4hopu/7R3TDqA/DcFIAEBF0Xcc3Vq/Gu+++i7q6OsRxDCLCyMgINE3DJF4z5RVFEVzXhRACjDH4vo9rrrkG/97VBcuyIKWczP8lzjmTUsaaEDdqU/V9pRQcx8H+nh7s27cPNTU1JeWJCJs3b8ayZcsglaoYZyYiCE3Dfx44gCeeeAJBEEAIAcdxcPToUbyzZw9WrVo11aBIVCwVpywMA7B//354ngfLsiCEwODgIDZv3oxt27ZVzf9bbr4Z6Zoa3LdpE2pra0susW/fPqxataos1ysLAADo7+8vgFEUQtM0tLS0QEpZ2gkpLxReU83ZE1lec3MzXNeFlBKaVhC/f2CgFCOqDsBECjHGEEURhBDgnEPXdbipVOnzfBCUCNPoTJL480S7lwBMRBBCIIqiy8pyRQAYT+BEOcMw4Ps+/v6nP8XR3/0OS5Yswbp160pWkXzPTaUQhOElg5eUEnaRYSYWNxlZqg7ARIU4AOR9H2vvvBO7du2C4zh49pln8B/vv49nnn22JLBhGHjqxz9G544d0DRtQkCllKitrcXWbdvwJ0uXVrzWqCgAic+/9PLLePPNNzF37lxIKTFjxgx0dnZi7dq1WHHLLQARXn31VfzN/fcjnU5fchc558hmszh95gzee++9EliVSrNVKXl7e3thGAaUUojjGLqugzGG06dPF1IjYzh08CA458hkMgjDsNBi+7xtF1zFdXG6txd9fX0wDGP6WkCyK83NzQCAIAhgGAZyuRxc18VNX/0qYikBItx+xx34h5/9DKdOnYImxIREhHMOz/Owdt06zJs3Dx999FFFSVZFARBFPn7zsmV4+JFH8Hfbt2NkZAS1tbXYvn07Fi5YgJznAYxh4cKF+JfXX8err7xSqvjGVo+MMcRxjDlz5mDNmjVVqTOq4gKe7+O+TZvQ2tqKkydPYsGCBZjb1ATP90tKeJ6HBQsW4LqFCyf9znJz/RUHAABynof58+fjD669FrGUyHpeyUIS0/Z9f1JRvRp1RdUB4Jwjn8+DiMA5v0j5ctpb1Wq1VQ2ARGBN0xDHMRhj4yp7VVqAUgrpdBqs6LtuKoVYSoSFfuNFed9xnEnxC78YA74QAKRSKRw6dAiPPPwwPv74Y1z3la9g6w9+gLlz5yIfBGCMQdM0CCFw5MiRy1LhzIwZaGxqqkqjpaIAqKKA/3PqFNasWYOTJ04gnU6ju7sbR44cwWuvvVbi9UE+jw3f+x52vfEGdF0flw0mRZKmaXiorQ3rv/3tiyrMisSqavj9P7/yCk6eOIGGhgYYhoHGxkZ8sH8/dnd1wTJNWKaJHTt24B9feAGmaZaaKeP2HhhDLpdD20MP4ey5c7Asq6KWUBUXCMPwcwGPMVagvEle9zwwxiCEuKRCjDEYhoEoihBFUcUDYkUtIFG6tbUVmUwGfX19UErh7NmzmD9/Pm5uaUEQhgjCsFAYrViB/r4+eLkcchM82WwWvu9j0333oamxEb7vT18qzIuCLVy4EM//8pdob2vDJ59+isWLF+OR7dsxe/bskgIzMhm89PLL6O7uvtAoGWsJjEHGMepnzcKiRYugik2RaZ8FstksVixfjubmZvT392P27NmloiaxkjAMoWkalre0TOqdI9ksXNf9YqRBznlpWFFfX48gCEqMcGyrK5vLTYoIVWvgUlUqTEQIgmBCypsEwauSCkspYRgGdF1HEASlqdHYNHdZxYgAxqpGh6sCABEh7broHxjAmTNnMG/ePNSk0xfN8JLpkq5NToSc531xAHBTKXT+6ldob2vD0NAQGhoa0NHRgVu+9rVS/jdNE+fOncPbb79dGraM5yJRsSGyYvlyYALCNH2ocNGcu3t6cM93vwvGGGzbxvFjx7B+/Xrs3rMHjY2NICL09vbiz7/5TXx4+DA0XR+/K4zC0bcgCLBx40Y8+eSTFQegslS4KNxbb72FIAiQTqehlELdjBn47LPP8N5vfgNd02DoOjp37MDhw4fR2NSETCaDmTNnfu7JzJyJTCaDOXPm4Pnnn8fJU6fgOM70p8KZTKbUA0gmPwkQyWpqaoKUErlc7pKBMOEPs+fMQdp10dfXN31dIOn63H777fj5c8+hp6cHrutieHgYrbfdhpaWFvj5PADgW3fcgYMHD2Lnzp3QJ3KBInANX/oSftjejpmZTKG1Pl2pcCJYJpPBP/3613jqqadw/Phx3Hjjjbj33ntLRU3yvUcffRTfv/9+KCnHnwuMaq64rju9qPClZnS+76OhoQGPP/bYhQpxTDWnlELO81BXV3fZHZVSIlukwpeaSV5RAMZrTOi6Xvp9Pp8vFTkJDR5vCjy6RL4c2FLK0pRp9Hv+L02SsgGoqakpCZaMxg8cOIBly5bBcZyKm6qUEpoQOHzoUGnYMlqWKwZAovTixYthmmZpdu+6Lh5//HG4roulS5cWjshUKFglZwMOHzqErVu3wrIsKKVKGeaPliwpP26Vc0gqISm3rlyJg7/9bSFAFQehvu/Ddd1LHnooN+Zks1mYpllygzAMMWvWLOx55x3U1taWUu/l8Bx9SIqjcMsinMpuSSlhWha2bNmCOI5Lvq5pWsk0K83YkmyQKM85x/nz5/HAAw9gVn39RS33yYDJgIiIQs4YGyHgXDGHT0pqIQQ8z8PKW29Fx49+hKGhIfjFuV8CRKUfXdcLEyYhEIYhzp49iwcffBB33XUXcp436ZhDF1LpkGmanyRHZf8LwA0A1GTpcdL02HDPPWhsbMQP29tx9OjRyZ7VKzsWcM4xb948dHR04O6774Y39R6hEpwLIjrOGMsmR2XvtG37hZznSc55WYelh0dGsLurC909PRjo7y80RCrl/4kL1NRgyeLFWL5iBWbV15dzThhEFDu2rfm+/7eO42xnADAwMFBr2fZ/a0JkYilpqkVSkp/NCp/emLDtHkUIw7CcVEuccyIiBaIv27Z9QitemDjved7Tuq63h1Ek+RRhTU5/ZXO5ip7fGc8FkgBYDs9QSknbsjTP93+RcpwTRCSSCxMMgO37/geWbX/ZK8MVpvtSSinDMJhSakDG8SLHcT4FAJ7cqGSM5ZRSfxFHkWcYhlBKyatJeSEEOGMsiKK/SqVSZwoqM8WLyisiEq7rHgiCoBWAl3IcQUQR0TS7HTk1lyGlVGyaJtd1nfth+Je1rvv66GtzfBQ5kF1dXVo6nd7te94tURwfc2xbF0IwIoqJSFJxAUiac9PqGbUkEcWcc5ZyHA1EZ3P5/Oq043QWY97nL06OQk0wxuTg4GCd4zhbGWPrdV2vSVpeydH46biSDlTSmAmjKGDAC8PDww/V19f3dnV1acuXL4/HptjxTGf05enGKIq+RUStBCwgpTIEmNMNhGLmiTjnAww4zhj7V6XUTsuyjo3e2ElVg8WYwIpB8jSApwE8TURuPp+fxRmzwyiq+KnNsnlBGMIwDBBRaBrGudFX6IlItLW10XjKA8D/AtJhPtXkkpt+AAAAAElFTkSuQmCC">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap');
 :root{
@@ -174,7 +175,7 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
       <label><input type="radio" name="listType" value="sentence"> Sentence</label>
       <label><input type="radio" name="listType" value="fragment"> Fragment</label>
       <label><input type="radio" name="listType" value="standAlone"> Stand-alone</label>
-      <label><input type="radio" name="listType" value="multilevel"> Multi-level</label>
+      <label><input type="radio" name="listType" value="multilevel"> Multilevel</label>
       <label><input type="radio" name="listType" value="numbered"> Numbered</label>
     </div>
   </section>
@@ -223,7 +224,7 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
         <p>Use a numbered list only when the order matters – for instructions, a sequence of events or a ranking.</p>
       </div>
       <div class="guide-card">
-        <h4>Multi-level list</h4>
+        <h4>Multilevel list</h4>
         <p>Use sparingly and keep to 2 levels. Mark the second level with an en dash or a lower-case letter.</p>
       </div>
     </div>
@@ -745,7 +746,7 @@ function analyseMultilevel(rawLeadIn, h, forcedType, forceNumbered) {
     const message =
       'This list can\u2019t be formatted yet.\n\n' +
       `Parallel structure issue at ${where}: the items there aren\u2019t all the same grammatical form. ` +
-      'In a multi-level list, the items at each level must match each other (all phrases, all statements, or all commands). ' +
+      'In a multilevel list, the items at each level must match each other (all phrases, all statements, or all commands). ' +
       'Rewrite the odd one out to match its siblings, then format again.';
     return { status: 'refused', message };
   }
@@ -779,10 +780,10 @@ function analyseMultilevel(rawLeadIn, h, forcedType, forceNumbered) {
   else casing = 'Each item starts with a capital letter and takes no end punctuation.';
 
   let explanation =
-    `This is a multi-level ${ordered ? 'ordered' : 'unordered'} list. ` +
+    `This is a multilevel ${ordered ? 'ordered' : 'unordered'} list. ` +
     `It uses ${firstLevel} for the first level and ${secondLevel}, as the Style Manual requires. ` +
     (h.tooDeep ? 'I formatted the third level with a filled square (\u25aa). ' : '') +
-    'Keep multi-level lists to 2 levels and use them sparingly, since they are harder to follow. ' +
+    'Keep multilevel lists to 2 levels and use them sparingly, since they are harder to follow. ' +
     casing + ' Each level should be parallel within itself.';
 
   if (h.tooDeep) {
