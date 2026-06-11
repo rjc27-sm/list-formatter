@@ -300,6 +300,22 @@ console.log('\n13f. Phrase lead-in plus long item flagged at 25 words');
   ok('25-word flag',     r.explanation.includes('25 words or fewer'));
 }
 
+// ---- 13g. 'Allergy list' example chip — Style Manual multilevel example ------
+
+console.log("\n13g. Allergy list example — Manual's multilevel correction");
+{
+  const r = analyse(
+    "They are allergic to:\n• tree nuts:\no\talmonds\no\tcashews\no\twalnuts.\n" +
+    "• dairy products:\no\tcow's milk\no\tgoat's milk.\n• crustaceans:\no\tcrabs\no\tprawns."
+  );
+  ok('status ok',               r.status === 'ok');
+  ok('multilevel fragment',     r.multilevel === true && r.listType === 'fragment');
+  ok('parent colons stripped',  !r.formatted.includes('nuts:'));
+  ok('hollow o becomes en dash', r.formatted.includes('– almonds'));
+  ok('mid-list stops removed',  !r.formatted.includes('walnuts.') && !r.formatted.includes("goat's milk."));
+  ok('single final stop',       r.formatted.endsWith('– prawns.'));
+}
+
 // ---- 14. DOM: .hidden display:none !important still wins -------------------
 
 console.log('\n14. CSS cascade — .hidden wins (display:none !important)');

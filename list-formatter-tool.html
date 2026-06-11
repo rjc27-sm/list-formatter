@@ -140,7 +140,7 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
       <span class="ex-lab">Try an example</span>
       <button type="button" class="chip" onclick="loadExample('grant')">Grant eligibility</button>
       <button type="button" class="chip" onclick="loadExample('docs')">Registration steps</button>
-      <button type="button" class="chip" onclick="loadExample('meeting')">Meeting prep</button>
+      <button type="button" class="chip" onclick="loadExample('allergies')">Allergy list</button>
     </div>
   </header>
 
@@ -1423,7 +1423,7 @@ function collectFixes(cleaned) {
   var EXAMPLES = {
     grant: "Your application must include:\n- a current ABN;\n- Proof of identity, and\n- 2 referees.",
     docs: "How to register for the conference:\n1. Choose the days you will attend.\n2. Pick the workshops you want to join.\n3. Enter your discount code (if you have one).",
-    meeting: "Before the meeting:\nConfirm the venue\n  Check seating\n  Test the microphone\nSend meeting pack\n  agenda\n  last month's minutes\n  agenda papers"
+    allergies: "They are allergic to:\n• tree nuts:\no\talmonds\no\tcashews\no\twalnuts.\n• dairy products:\no\tcow's milk\no\tgoat's milk.\n• crustaceans:\no\tcrabs\no\tprawns."
   };
   function loadExample(key){
     var text = EXAMPLES[key];
