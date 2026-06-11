@@ -227,6 +227,79 @@ console.log('\n13. Numbered sentence list — imperative items, phrase lead-in, 
   ok('already correct',      r.alreadyCorrect === true);
 }
 
+// ---- 13a. Style Manual examples: command-verb items (stated-subject test) ---
+
+console.log('\n13a. Command-verb items — Style Manual stated-subject rule');
+{
+  // 'To write well:' names no subject → instructions to the reader → sentence list.
+  const r1 = analyse('To write well:\nuse everyday words\nlearn about the words people use\nchoose simple words, not complicated expressions');
+  ok('To write well → sentence list', r1.status === 'ok' && r1.listType === 'sentence');
+  ok('items capitalised with stops',  r1.formatted.includes('• Use everyday words.'));
+
+  // 'My cousin has a bucket list:' states the subject → fragment list.
+  const r2 = analyse('My cousin has a bucket list:\nswim with cuttlefish\nbuy rocket boots\nskydive over the Swiss Alps\nrun a marathon');
+  ok('Bucket list → fragment list',  r2.status === 'ok' && r2.listType === 'fragment');
+  ok('items lower-case',             r2.formatted.includes('• swim with cuttlefish'));
+  ok('only last item has full stop', r2.formatted.endsWith('run a marathon.'));
+
+  // 'The participants will:' states the subject → fragment list (quick guide example).
+  const r3 = analyse('The participants will:\narrive at the venue\nfind their name tag\ntake their allocated seat');
+  ok('Participants will → fragment', r3.status === 'ok' && r3.listType === 'fragment');
+}
+
+// ---- 13b. Sentence lead-in ending in a full stop is preserved ---------------
+
+console.log('\n13b. Full-stop sentence lead-in preserved');
+{
+  const r = analyse('Follow us on social media.\nLearn about our projects.\nEnter our competitions.\nFind out about our new products.');
+  ok('status ok',              r.status === 'ok');
+  ok('sentence list',          r.listType === 'sentence');
+  ok('full stop kept',         r.formatted.startsWith('Follow us on social media.\n'));
+  ok('already correct',        r.alreadyCorrect === true);
+}
+
+// ---- 13c. 'bring' and similar are not gerunds --------------------------------
+
+console.log("\n13c. 'bring' not misread as a gerund");
+{
+  const r = analyse('Before the meeting:\nbring your ID\ncheck the agenda\nconfirm the venue');
+  ok('not refused',          r.status === 'ok');
+  ok('sentence list (instructions, no stated subject)', r.listType === 'sentence');
+  ok('Bring capitalised',    r.formatted.includes('• Bring your ID.'));
+}
+
+// ---- 13d. First line that is a list item → helpful error ---------------------
+
+console.log('\n13d. No lead-in — first line is a list item');
+{
+  const r = analyse('• Exhibition space\n• Function rooms\n• Theatrette');
+  ok('status error',          r.status === 'error');
+  ok('asks for a lead-in',    /lead-in/.test(r.message));
+}
+
+// ---- 13e. Trailing and/or explanation notes the legal exception --------------
+
+console.log("\n13e. 'and'/'or' removal explanation mentions the exception");
+{
+  const r = analyse('Your application must include:\n- a current ABN;\n- Proof of identity, and\n- 2 referees.');
+  ok('status ok',                     r.status === 'ok');
+  ok('fragment list',                 r.listType === 'fragment');
+  ok('mentions critical to meaning',  r.explanation.includes('critical to meaning'));
+}
+
+// ---- 13f. Run-on fragment over 25 words is flagged ---------------------------
+
+console.log('\n13f. Phrase lead-in plus long item flagged at 25 words');
+{
+  const r = analyse(
+    'The working group is responsible for reviewing and endorsing all of the:\n' +
+    '• detailed quarterly performance reports prepared by the data team for the executive committee and the board\n' +
+    '• published content.'
+  );
+  ok('status ok',        r.status === 'ok');
+  ok('25-word flag',     r.explanation.includes('25 words or fewer'));
+}
+
 // ---- 14. DOM: .hidden display:none !important still wins -------------------
 
 console.log('\n14. CSS cascade — .hidden wins (display:none !important)');
@@ -240,13 +313,16 @@ console.log('\n14. CSS cascade — .hidden wins (display:none !important)');
   window.document.body.removeChild(el);
 }
 
-// ---- 15. DOM: copy button hidden on load, shown after format ---------------
+// ---- 15. DOM: copy buttons hidden on load, shown after format ---------------
 
-console.log('\n15. DOM wiring — copy button hidden on load');
+console.log('\n15. DOM wiring — copy buttons hidden on load');
 {
   const copyBtn = window.document.getElementById('copyBtn');
-  ok('copyBtn exists',         !!copyBtn);
-  ok('copyBtn hidden on load', copyBtn.classList.contains('hidden'));
+  const copyWordBtn = window.document.getElementById('copyWordBtn');
+  ok('copyBtn exists',             !!copyBtn);
+  ok('copyBtn hidden on load',     copyBtn.classList.contains('hidden'));
+  ok('copyWordBtn exists',         !!copyWordBtn);
+  ok('copyWordBtn hidden on load', copyWordBtn.classList.contains('hidden'));
 }
 
 // ---- 16. DOM: report modal pre-fill ----------------------------------------
@@ -257,6 +333,24 @@ console.log('\n16. DOM — report modal pre-fill');
   const reportBtn = window.document.getElementById('reportOpenBtn');
   ok('input exists',       !!inputEl);
   ok('reportOpenBtn exists', !!reportBtn);
+}
+
+// ---- 17. Word HTML builder — markers and list definitions -------------------
+
+console.log('\n17. buildWordHtml — Word list definitions');
+{
+  const build = window.buildWordHtml;
+  ok('buildWordHtml exists', typeof build === 'function');
+  if (typeof build === 'function') {
+    const h1 = build('They are allergic to:\n• tree nuts\n    – almonds\n        ▪ raw.', 'fragment');
+    ok('en dash level-2 definition', h1.includes('\\2013'));
+    ok('filled-square level-3 definition', h1.includes('\\25AA'));
+    ok('mso-list paragraphs', h1.includes('mso-list:l0 level1 lfo1'));
+    ok('level 2 assigned', h1.includes('mso-list:l0 level2 lfo1'));
+    const h2 = build('Steps\n1. Do this.\n2. Do that.', 'standAlone');
+    ok('stand-alone heading bolded', h2.includes('<b>Steps</b>'));
+    ok('ordered uses alpha-lower for level 2', h2.includes('alpha-lower'));
+  }
 }
 
 // ---- Summary ---------------------------------------------------------------
