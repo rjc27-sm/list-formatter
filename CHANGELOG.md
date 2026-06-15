@@ -16,6 +16,7 @@ All notable changes to the Style Manual list formatter are recorded here. Dates 
 
 ### Changed
 
+- The tool now opens with an empty input, ready for content. The 'Grant eligibility' example is no longer pre-filled on load; use the 'Try an example' chips to load one.
 - The list type selector is now a correction panel below the 'What changed' explanation, headed 'Wrong list type?'. It is hidden until a list formats successfully, carries no step number, and has its own 'Format again' button. This replaces the earlier numbered 'Format as' step, which implied that choosing a type was a required part of the workflow.
 - The explanation pane now shows a short breadcrumb pointing to the panel: 'Not the list type you expected? Change it below.'
 - The stand-alone clause warning now points writers to the 'Sentence' option, matching the wording of the new forced-type notes.

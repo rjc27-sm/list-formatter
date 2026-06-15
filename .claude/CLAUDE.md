@@ -18,7 +18,7 @@ It is being tested by professional editors, so correctness and Style Manual comp
 
 The inline `<script>` is organised as **pure logic functions first, then DOM wiring**. When changing logic, work on the pure functions and verify them in isolation (see Testing) before touching the DOM glue.
 
-A small second `<script>` block at the very bottom powers the **'Try an example' chips** (`loadExample()`). It only sets the textarea value and calls the existing `analyseList()`. It adds no logic and no dependencies — do not grow it.
+A small second `<script>` block at the very bottom powers the **'Try an example' chips** (`loadExample()`). It only sets the textarea value and calls the existing `analyseList()`. It adds no logic and no dependencies — do not grow it. The tool opens with an empty input — no example is pre-filled; an example loads only when a chip is clicked.
 
 ## How the tool decides the list type (intent — don't regress this)
 
