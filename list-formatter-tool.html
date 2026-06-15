@@ -59,6 +59,7 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
 .copy-btn.copied{background:var(--teal)}
 
 .types{margin-top:26px}
+.types-note{font-size:13px;color:var(--c2);margin:0 0 14px;max-width:560px;line-height:1.55}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg label{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border:1px solid var(--c5);
   border-radius:999px;font-size:14px;color:var(--c2);cursor:pointer;background:#fff;transition:all .15s var(--ease)}
@@ -136,7 +137,7 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
 <main class="wrap">
   <header class="head">
     <h1>Style Manual list formatter</h1>
-    <p class="lede">Paste a rough list and the tool fixes its punctuation, capitals and markers to match the Australian Government Style Manual. It works out the list type for you – you can change the list type if the guess is wrong. It only formats lists whose items share the same structure (that is, are <a href="https://www.stylemanual.gov.au/style-manual-resources/government-writing-handbook/editors-tips/parallel-structure-lists" target="_blank" rel="noopener noreferrer">parallel</a>).</p>
+    <p class="lede">Paste a rough list and the tool formats it according to Australian Government Style Manual rules. It works out the list type for you – you can change the list type if the guess doesn’t match your intention. It only formats lists whose items share the same structure (that is, are <a href="https://www.stylemanual.gov.au/style-manual-resources/government-writing-handbook/editors-tips/parallel-structure-lists" target="_blank" rel="noopener noreferrer">parallel</a>). The tool fixes punctuation, capitals and bullet markers. It does not rewrite your items.</p>
     <div class="examples">
       <span class="ex-lab">Try an example</span>
       <button type="button" class="chip" onclick="loadExample('grant')">Grant eligibility</button>
@@ -169,8 +170,9 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
   </div>
 
   <section class="types">
-    <div class="step-h"><span class="num">3</span><h2>List type</h2><span class="step-hint">change it if the guess is wrong</span></div>
-    <div class="seg" role="radiogroup" aria-label="List type">
+    <div class="step-h"><span class="num">3</span><h2>Format as</h2></div>
+    <p class="types-note">These options set the list type. The tool formats your items, but cannot reword them to fit a type.</p>
+    <div class="seg" role="radiogroup" aria-label="Format as">
       <label><input type="radio" name="listType" value="auto" checked> Auto-detect</label>
       <label><input type="radio" name="listType" value="sentence"> Sentence</label>
       <label><input type="radio" name="listType" value="fragment"> Fragment</label>
@@ -662,6 +664,12 @@ function parseHierarchy(rawItems) {
     else if (!seenParent) r.level = 0;
   });
 
+  // Recompute the multilevel flag from the levels that survived normalisation.
+  // A list whose items all sit at level 0 (for example, a flat list bulleted with '-')
+  // is single-level, even though dash markers first looked like a child level.
+  multilevel = rows.some(r => r.level > 0);
+  if (!multilevel) tooDeep = false;
+
   const lvl0 = rows.filter(r => r.level === 0);
   const numbered0 = lvl0.filter(r => r.marker === 'number').length;
   const ordered = multilevel &&
@@ -892,10 +900,14 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
         lengthNote = ' The Style Manual keeps a phrase lead-in plus its longest item to 25 words or fewer \u2013 consider trimming the longer items.';
       }
     }
+    // The writer forced a fragment list onto full-sentence items: format mechanically, but be honest.
+    const fragForcedNote = (forcedType === 'fragment' && d.granular.includes('clause'))
+      ? ' You chose a fragment list, but these items read as full sentences. A fragment list needs short phrases that complete the lead-in. The tool cannot shorten your wording for you. Shorten each item to a phrase, or choose ‘Sentence’ from the list type options instead.'
+      : '';
     explanation =
       `This is a fragment list. ${fragReason}. ` +
       'In a fragment list, items begin with a lower-case letter (unless they start with a proper noun) and only the final item takes a full stop. ' +
-      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + loweredNote + lengthNote + orderNote;
+      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + loweredNote + lengthNote + orderNote + fragForcedNote;
   } else if (listType === 'sentence') {
     // Keep a full stop the writer put on a sentence lead-in (both marks are correct).
     const keepLeadPunct = d.leadInType === 'sentence' && /[.!?]\s*$/.test(rawLeadIn.trim());
@@ -924,14 +936,18 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
     const imperativeTip = d.imperativeBasis === 'noSubject'
       ? ' If the items aren\u2019t instructions to the reader, choose \u2018Fragment\u2019 from the list type options instead.'
       : '';
+    // The writer forced a sentence list onto phrase items: the tool cannot supply the missing grammar.
+    const sentForcedNote = (forcedType === 'sentence' && (kind === 'noun phrases' || kind === 'phrases'))
+      ? ' You chose a sentence list, but these items are phrases, not full sentences. A sentence list needs each item to have a subject and a verb. The tool cannot add words, so reword each item as a complete sentence. If these aren’t sentences, choose ‘Fragment’ from the list type options instead.'
+      : '';
     explanation =
       `This is a sentence list. ${reason}, so every item starts with a capital letter and ends with a full stop. ` +
-      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + leadPunctNote + imperativeTip + orderNote;
+      parallelNote(kind, listType) + closingCheck(d, listType) + fixes + capsNote(d) + leadPunctNote + imperativeTip + orderNote + sentForcedNote;
   } else {
     formatted = formatStandAlone(rawLeadIn, d.cleaned, numbered);
     // Reached with full-sentence items only when the type is forced, so warn the writer.
     const clauseWarning = d.granular.includes('clause')
-      ? ' Note: the Style Manual says stand-alone list items cannot be full sentences. If these items are sentences, choose the sentence list type instead.'
+      ? ' Note: the Style Manual says stand-alone list items cannot be full sentences. If these items are sentences, choose ‘Sentence’ from the list type options instead.'
       : '';
     explanation =
       `This is a stand-alone list. \u2018${rawLeadIn.trim().replace(/:\s*$/, '')}\u2019 reads as a heading with no lead-in sentence, ` +

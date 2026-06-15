@@ -199,6 +199,20 @@ console.log('\n11. Forced sentence type — no contradictory phrase note');
   ok('list type sentence',           r.listType === 'sentence');
   ok('no "they\'re all phrases"',    !r.explanation.includes("they're all phrases"));
   ok('no "confirm each one fits"',   !r.explanation.includes('confirm each one fits'));
+  ok('forced-sentence limit note',   r.explanation.includes('cannot add words'));
+}
+
+// ---- 11b. Forced fragment onto full sentences — honest limitation note -------
+
+console.log('\n11b. Forced fragment type — limitation note for full-sentence items');
+{
+  const r = analyse(
+    'You must do all of the following:\n• You must be 18 or over.\n• You must hold a current licence.\n• You must live in the area.',
+    'fragment'
+  );
+  ok('status ok',                  r.status === 'ok');
+  ok('list type fragment',         r.listType === 'fragment');
+  ok('forced-fragment limit note', r.explanation.includes('cannot shorten your wording'));
 }
 
 // ---- 12. Forced numbered list ----------------------------------------------
@@ -285,6 +299,9 @@ console.log("\n13e. 'and'/'or' removal explanation mentions the exception");
   ok('status ok',                     r.status === 'ok');
   ok('fragment list',                 r.listType === 'fragment');
   ok('mentions critical to meaning',  r.explanation.includes('critical to meaning'));
+  // A flat list bulleted with '-' is single-level, not multilevel (regression).
+  ok('single-level, not multilevel',  !r.multilevel);
+  ok('not labelled multilevel',       !r.explanation.includes('multilevel'));
 }
 
 // ---- 13f. Run-on fragment over 25 words is flagged ---------------------------
