@@ -388,6 +388,18 @@ console.log('\n17. buildWordHtml — Word list definitions');
   }
 }
 
+// ---- 16b. DOM — list type panel relocated below the explanation, hidden until format
+
+console.log('\n16b. DOM — list type panel below explanation, hidden on load');
+{
+  const types = window.document.getElementById('typesPanel');
+  const explain = window.document.getElementById('explanation');
+  ok('typesPanel exists',            !!types);
+  ok('typesPanel hidden on load',    types.classList.contains('hidden'));
+  ok('typesPanel after explanation', !!(explain.compareDocumentPosition(types) & 4));
+  ok('Format again button present',  /Format again/.test(types.textContent));
+}
+
 // ---- Summary ---------------------------------------------------------------
 
 console.log(`\n${'─'.repeat(50)}`);

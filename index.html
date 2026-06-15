@@ -59,7 +59,10 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
 .copy-btn.copied{background:var(--teal)}
 
 .types{margin-top:26px}
+.types-title{font-size:16px;font-weight:700;color:var(--b1);margin:0 0 6px}
 .types-note{font-size:13px;color:var(--c2);margin:0 0 14px;max-width:560px;line-height:1.55}
+.types-foot{margin-top:14px}
+.explain-hint{font-size:13px;color:var(--c2);margin:10px 0 0}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
 .seg label{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border:1px solid var(--c5);
   border-radius:999px;font-size:14px;color:var(--c2);cursor:pointer;background:#fff;transition:all .15s var(--ease)}
@@ -169,19 +172,6 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
     </section>
   </div>
 
-  <section class="types">
-    <div class="step-h"><span class="num">3</span><h2>Format as</h2></div>
-    <p class="types-note">These options set the list type. The tool formats your items, but cannot reword them to fit a type.</p>
-    <div class="seg" role="radiogroup" aria-label="Format as">
-      <label><input type="radio" name="listType" value="auto" checked> Auto-detect</label>
-      <label><input type="radio" name="listType" value="sentence"> Sentence</label>
-      <label><input type="radio" name="listType" value="fragment"> Fragment</label>
-      <label><input type="radio" name="listType" value="standAlone"> Stand-alone</label>
-      <label><input type="radio" name="listType" value="multilevel"> Multilevel</label>
-      <label><input type="radio" name="listType" value="numbered"> Numbered</label>
-    </div>
-  </section>
-
   <div id="errorPanel" class="error-panel hidden" role="alert">
     <div class="error-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12" y2="16.5"/></svg></div>
     <div>
@@ -195,8 +185,25 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
     <div>
       <h3>What changed</h3>
       <p id="explanationText"></p>
+      <p class="explain-hint">Not the list type you expected? Change it below.</p>
     </div>
   </div>
+
+  <section class="types hidden" id="typesPanel">
+    <h2 class="types-title">Wrong list type?</h2>
+    <p class="types-note">If auto-detect didn’t choose the list type you expected, select another type and format again. The tool formats your items but cannot reword them to fit a type.</p>
+    <div class="seg" role="radiogroup" aria-label="Choose a list type">
+      <label><input type="radio" name="listType" value="auto" checked> Auto-detect</label>
+      <label><input type="radio" name="listType" value="sentence"> Sentence</label>
+      <label><input type="radio" name="listType" value="fragment"> Fragment</label>
+      <label><input type="radio" name="listType" value="standAlone"> Stand-alone</label>
+      <label><input type="radio" name="listType" value="multilevel"> Multilevel</label>
+      <label><input type="radio" name="listType" value="numbered"> Numbered</label>
+    </div>
+    <div class="types-foot">
+      <button class="btn btn-primary" type="button" onclick="analyseList()">Format again</button>
+    </div>
+  </section>
 
   <div class="report-link-row">
     <button type="button" id="reportOpenBtn" class="report-link">Spotted a problem? Report an issue</button>
@@ -1041,6 +1048,7 @@ function collectFixes(cleaned) {
     document.getElementById('errorText').textContent = text;
     document.getElementById('errorPanel').classList.remove('hidden');
     document.getElementById('explanation').classList.add('hidden');
+    document.getElementById('typesPanel').classList.add('hidden');
     document.getElementById('copyBtn').classList.add('hidden');
     document.getElementById('copyWordBtn').classList.add('hidden');
     document.getElementById('output').textContent = 'Your formatted list will appear here';
@@ -1090,6 +1098,7 @@ function collectFixes(cleaned) {
     }
     document.getElementById('explanationText').textContent = result.explanation;
     document.getElementById('explanation').classList.remove('hidden');
+    document.getElementById('typesPanel').classList.remove('hidden');
   }
 
   function flashBtn(id, label, restore) {
@@ -1241,6 +1250,7 @@ function collectFixes(cleaned) {
     document.getElementById('output').textContent = 'Your formatted list will appear here';
     document.getElementById('explanation').classList.add('hidden');
     document.getElementById('errorPanel').classList.add('hidden');
+    document.getElementById('typesPanel').classList.add('hidden');
     document.getElementById('copyBtn').classList.add('hidden');
     document.getElementById('copyWordBtn').classList.add('hidden');
     const auto = document.querySelector('input[name="listType"][value="auto"]');

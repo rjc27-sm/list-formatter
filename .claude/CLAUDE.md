@@ -94,7 +94,7 @@ Note: the tool's output is itself Style Manual list formatting; this section is 
 
 Logic bugs here are subtle, so verify changes rather than eyeballing them.
 
-Run `node test.js` from the repo root. This is the canonical regression suite (97 assertions). It covers:
+Run `node test.js` from the repo root. This is the canonical regression suite (101 assertions). It covers:
 
 - Pure logic: fragment/sentence/stand-alone/multilevel detection, parallel-gate refusal, capitalisation, T1-code preservation, hollow-bullet stripping, already-correct detection.
 - The Manual's published command-verb examples: 'To write well:' → sentence list; the bucket list and 'The participants will:' → fragment lists (tests 13a). Full-stop lead-in preservation (13b), `NOT_GERUND` (13c), the no-lead-in error (13d), the 'and'/'or' legal-exception wording and the dash-only single-level regression (13e), and the 25-word flag (13f).
@@ -117,9 +117,9 @@ Key design tokens (defined in `:root`):
 - Copy-success: `--teal #27854e`
 - Page bg: `--bg #f6f7f7`; card border: `--line #e3e6e6`
 
-Layout: centred single column, `max-width: 960px`, 4px blue keyline across the top. A 1fr 1fr grid holds the input and output cards. Below the grid (in order): the list type pill-radio row, the refusal/explanation panel, the action buttons, the report link, the guide, and a source credit.
+Layout: centred single column, `max-width: 960px`, 4px blue keyline across the top. A 1fr 1fr grid holds the input and output cards. Below the grid (in order): the refusal/explanation panel, the 'Wrong list type?' panel (hidden until a list formats successfully), the report link, the guide, and a source credit.
 
-The list type selector (headed 'Format as', renamed from 'List type' on 15 June 2026) sits below the output panel, not inside the input panel. A helper line under the heading states the tool formats your items but cannot reword them to fit a type. The selected pill uses `:has(input:checked)` styling. Options: Auto-detect, Sentence, Fragment, Stand-alone, Multilevel, Numbered. Multilevel and Numbered both map to null for the list sub-type (detection is structural/auto); Numbered also forces `numbered = true` in the formatters.
+The list type selector (now headed 'Wrong list type?', renamed from 'Format as' on 15 June 2026) sits below the explanation panel, not below the output panel. It is hidden until a list formats successfully, then revealed beneath the 'What changed' explanation — it is a correction for when auto-detect guesses wrong, not a required step, so it carries no step number. A helper line states the tool formats your items but cannot reword them to fit a type, and a 'Format again' button (`onclick="analyseList()"`) re-runs the formatter with the chosen type. The explanation panel adds a breadcrumb: 'Not the list type you expected? Change it below.' The selected pill uses `:has(input:checked)` styling. Options: Auto-detect, Sentence, Fragment, Stand-alone, Multilevel, Numbered. Multilevel and Numbered both map to null for the list sub-type (detection is structural/auto); Numbered also forces `numbered = true` in the formatters.
 
 The 'Explanation' panel (formerly 'Why this works') appears immediately below the two-panel grid after formatting — no scrolling needed.
 
@@ -165,7 +165,7 @@ Do not replace `DOMParser` with `div.innerHTML` for parsing full Word HTML — i
 - Ship user-facing copy without checking it against the Style Manual skill.
 - Ship changes to 'Copy for Word' without a manual paste test in desktop Word and Word for the web.
 - Add 'not a hollow bullet' back to the multilevel explanation text (was removed as ambiguous).
-- Move the List type selector back inside the input panel — it lives below the output panel now.
+- Move the list type panel back up the page or give it a step number — it now lives below the explanation panel, hidden until a successful format, as a correction (not a step). It must not appear on a refusal: forcing a type cannot fix a parallelism refusal.
 - Reintroduce a phrase-based parallel note for sentence lists — it contradicts the sentence-list classification.
 - Replace `DOMParser` with `div.innerHTML` in the paste handler — `div.innerHTML` dumps Word's `<style>` block as visible text and produces an unreliable DOM.
 - Collapse three-level list items to two levels — preserve all detected levels and show the Style Manual note instead.
