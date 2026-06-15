@@ -1,0 +1,19 @@
+# Dependencies (installed via npm; never committed)
+node_modules/
+
+# Local editor and agent settings
+.claude/settings.local.json
+.vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Office lock and temporary files
+~$*
+*.tmp
+
+# Local scratch: unpacked document working files
+docx_unpacked/
