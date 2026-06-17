@@ -1310,10 +1310,34 @@ function collectFixes(cleaned) {
     catch (e) { return null; }
     const lines = [];
 
-    // ── Word mso-list format ──────────────────────────────────────────────────
-    // Two-attribute selector: list paragraphs have BOTH 'mso-list' AND 'level' in
-    // their inline style (e.g. 'mso-list:l0 level1 lfo1').  Bullet-placeholder spans
-    // only have 'mso-list:Ignore' – no 'level' – so they are excluded automatically.
+    // Level marker for a given depth (0 → •, 1 → –, 2+ → ▪).
+    const bulletFor = lvl => lvl === 0 ? '•' : lvl === 1 ? '–' : '▪';
+
+    // Parse the left indent (margin-left, or the 4th value of a 'margin' shorthand)
+    // from an element's inline style. Units are ignored – the values are only ranked
+    // against one another within a single paste, so pt and px both work.
+    function leftIndent(el) {
+      const s = (el && el.getAttribute && el.getAttribute('style')) || '';
+      let m = s.match(/margin-left:\s*(-?[\d.]+)/i);
+      if (m) return parseFloat(m[1]);
+      m = s.match(/margin:\s*(-?[\d.]+)[a-z%]*\s+(-?[\d.]+)[a-z%]*\s+(-?[\d.]+)[a-z%]*\s+(-?[\d.]+)/i);
+      if (m) return parseFloat(m[4]);
+      return 0;
+    }
+
+    // Map an indent value to a level index using the sorted distinct indents.
+    function levelFromIndent(indent, sortedDistinct) {
+      const idx = sortedDistinct.indexOf(indent);
+      return Math.min(2, idx < 0 ? 0 : idx);
+    }
+
+    // ── Word desktop mso-list format ─────────────────────────────────────────
+    // List paragraphs carry BOTH 'mso-list' AND a 'level' token in their inline
+    // style (e.g. 'mso-list:l0 level1 lfo1'). Bullet-placeholder spans carry only
+    // 'mso-list:Ignore' (no level), so the two-attribute selector excludes them.
+    // Word reuses 'level1' across different list definitions, so the level token
+    // alone flattens a two-level list. We also rank the left indents and take the
+    // deeper of the two signals, so the second level survives.
     const msoItems = Array.from(doc.querySelectorAll('[style*="mso-list"][style*="level"]'));
     if (msoItems.length) {
       // Capture the immediately preceding paragraph as the lead-in (if any).
@@ -1327,9 +1351,11 @@ function collectFixes(cleaned) {
         }
         if (leadIn) lines.push(leadIn);
       }
+      const msoIndents = [...new Set(msoItems.map(leftIndent))].sort((a, b) => a - b);
       for (const el of msoItems) {
-        const m = (el.getAttribute('style') || '').match(/level(\d+)/i);
-        const level = m ? Math.max(0, parseInt(m[1]) - 1) : 0;
+        const tok = (el.getAttribute('style') || '').match(/level(\d+)/i);
+        const tokLevel = tok ? Math.max(0, parseInt(tok[1]) - 1) : 0;
+        const level = Math.min(2, Math.max(tokLevel, levelFromIndent(leftIndent(el), msoIndents)));
         // Clone and strip any remaining bullet-placeholder spans before reading text.
         // Word wraps them in <!--[if !supportLists]-->…<!--[endif]--> which modern
         // browsers parse as real comments, leaving the spans in the DOM.
@@ -1337,17 +1363,16 @@ function collectFixes(cleaned) {
         Array.from(clone.querySelectorAll('[style*="Ignore"]')).forEach(n => n.remove());
         const text = clone.textContent.replace(/\s+/g, ' ').trim();
         if (!text) continue;
-        const mk = level === 0 ? '•' : level === 1 ? '–' : '▪';
-        lines.push(mk + '\t' + text);
+        lines.push(bulletFor(level) + '\t' + text);
       }
       if (lines.length) return lines.join('\n');
     }
 
-    // ── Standard HTML list format (<ul>/<ol>/<li>) ───────────────────────────
+    // ── Standard HTML lists (<ul>/<ol>/<li>) ─────────────────────────────────
     const body = doc.body;
     if (!body) return null;
 
-    // Capture lead-in text before the first list element.
+    // Capture lead-in text before the first list block.
     for (const child of Array.from(body.children)) {
       const tag = child.tagName.toUpperCase();
       if (tag === 'UL' || tag === 'OL' || child.querySelector('ul,ol')) break;
@@ -1356,40 +1381,65 @@ function collectFixes(cleaned) {
       if (t) lines.push(t);
     }
 
-    function walkList(listEl, depth) {
-      const ordered = listEl.tagName.toUpperCase() === 'OL';
-      let n = 1;
-      for (const child of Array.from(listEl.children)) {
-        if (child.tagName.toUpperCase() !== 'LI') continue;
-        let text = '';
-        for (const node of Array.from(child.childNodes)) {
-          const tag = node.tagName ? node.tagName.toUpperCase() : '';
-          if (node.nodeType === 3) text += node.textContent;
-          else if (tag !== 'UL' && tag !== 'OL') text += node.textContent;
+    const allLists = Array.from(body.querySelectorAll('ul,ol'));
+    if (!allLists.length) return lines.length ? lines.join('\n') : null;
+
+    // Top-level lists have no list ancestor. Word for the web puts every item in its
+    // own <ul> inside a <div>, so a single pasted list can produce many top-level
+    // lists – collect them all in document order, not just the first.
+    const topLists = allLists.filter(l => !(l.parentElement && l.parentElement.closest('ul,ol')));
+    const nested = allLists.some(l => l.parentElement && l.parentElement.closest('ul,ol'));
+
+    // Read an item's text, dropping any nested list text it contains.
+    function liText(li) {
+      const clone = li.cloneNode(true);
+      Array.from(clone.querySelectorAll('ul,ol')).forEach(n => n.remove());
+      return clone.textContent.replace(/\s+/g, ' ').trim();
+    }
+
+    if (nested) {
+      // Genuinely nested markup – assign levels by nesting depth.
+      const walkList = function (listEl, depth) {
+        const ordered = listEl.tagName.toUpperCase() === 'OL';
+        let n = 1;
+        for (const child of Array.from(listEl.children)) {
+          if (child.tagName.toUpperCase() !== 'LI') continue;
+          const text = liText(child);
+          if (text) {
+            const mk = depth >= 1 ? bulletFor(depth) : (ordered ? n + '.' : '•');
+            lines.push(mk + '\t' + text);
+            if (ordered) n++;
+          }
+          for (const node of Array.from(child.childNodes)) {
+            const tag = node.tagName ? node.tagName.toUpperCase() : '';
+            if (tag === 'UL' || tag === 'OL') walkList(node, depth + 1);
+          }
         }
-        text = text.replace(/\s+/g, ' ').trim();
-        if (text) {
-          const mk = depth > 1 ? '▪' : depth === 1 ? '–'
-            : (ordered ? n + '.' : '•');
-          lines.push(mk + '\t' + text);
-          if (ordered) n++;
-        }
-        for (const node of Array.from(child.childNodes)) {
-          const tag = node.tagName ? node.tagName.toUpperCase() : '';
-          if (tag === 'UL' || tag === 'OL') walkList(node, depth + 1);
+      };
+      for (const list of topLists) walkList(list, 0);
+      return lines.length ? lines.join('\n') : null;
+    }
+
+    // Flat sibling lists with no nesting – derive levels by ranking each item's left
+    // indent. Word for the web encodes the second level as a deeper margin on the
+    // <li> rather than as nested markup.
+    const items = [];
+    for (const list of topLists) {
+      for (const li of Array.from(list.children)) {
+        if (li.tagName && li.tagName.toUpperCase() === 'LI') {
+          items.push({ li, indent: leftIndent(li), ordered: li.closest('ol') !== null });
         }
       }
     }
-
-    const topLists = Array.from(body.children).filter(
-      el => ['UL', 'OL'].includes(el.tagName.toUpperCase())
-    );
-    if (!topLists.length) {
-      const first = body.querySelector('ul,ol');
-      if (!first) return null;
-      topLists.push(first);
+    const itemIndents = [...new Set(items.map(it => it.indent))].sort((a, b) => a - b);
+    let num = 0;
+    for (const it of items) {
+      const text = liText(it.li);
+      if (!text) continue;
+      const level = levelFromIndent(it.indent, itemIndents);
+      const mk = level === 0 ? (it.ordered ? (++num) + '.' : '•') : bulletFor(level);
+      lines.push(mk + '\t' + text);
     }
-    for (const list of topLists) walkList(list, 0);
     return lines.length ? lines.join('\n') : null;
   }
 

@@ -388,7 +388,60 @@ console.log('\n17. buildWordHtml — Word list definitions');
   }
 }
 
+// ---- 18. Paste handler — two-level lists from Word desktop and Word web -----
+// Real clipboard captures showed both Word variants encode the second level by a
+// deeper left indent, not by a 'level2' token or nested markup. reconstructListText
+// must keep the lead-in and both levels for each. See CHANGELOG 17 June 2026.
+
+console.log('\n18. reconstructListText — multilevel paste from both Word variants');
+{
+  const reconstruct = window.reconstructListText;
+  ok('reconstructListText exists', typeof reconstruct === 'function');
+
+  const desktop =
+    '<html><body><!--StartFragment-->' +
+    '<p class=AIHWbodytext><b><span>Findings tell us:</span></b></p>' +
+    "<p style='margin-left:36.0pt;mso-list:l0 level1 lfo1'>" +
+    "<span style='mso-list:Ignore'>&middot;</span><span>Parent one.</span></p>" +
+    "<p style='margin-left:36.0pt;mso-list:l0 level1 lfo1'>" +
+    "<span style='mso-list:Ignore'>&middot;</span><span>Parent two. Of these:</span></p>" +
+    "<p style='margin-left:72.0pt;mso-list:l1 level1 lfo2'>" +
+    "<span style='mso-list:Ignore'>o</span><span>Child one</span></p>" +
+    "<p style='margin-left:72.0pt;mso-list:l1 level1 lfo2'>" +
+    "<span style='mso-list:Ignore'>o</span><span>Child two</span></p>" +
+    '<!--EndFragment--></body></html>';
+  const dOut = reconstruct(desktop);
+  ok('desktop: lead-in kept', /^Findings tell us:/.test(dOut));
+  ok('desktop: 5 lines (lead-in + 4 items)', dOut.split('\n').length === 5);
+  ok('desktop: parents are bullets', dOut.includes('•\tParent one.'));
+  ok('desktop: children demoted to en dash', dOut.includes('–\tChild one') && dOut.includes('–\tChild two'));
+
+  const web =
+    '<html><body><!--StartFragment-->' +
+    '<div class="OutlineElement"><p><span>Findings tell us:</span></p></div>' +
+    '<div class="ListContainerWrapper"><ul><li style="margin: 0px 0px 0px 24px;"><p><span>Parent one.</span></p></li></ul></div>' +
+    '<div class="ListContainerWrapper"><ul><li style="margin: 0px 0px 0px 24px;"><p><span>Parent two. Of these:</span></p></li></ul></div>' +
+    '<div class="ListContainerWrapper"><ul><li style="margin: 0px 0px 0px 72px;"><p><span>Child one</span></p></li></ul></div>' +
+    '<div class="ListContainerWrapper"><ul><li style="margin: 0px 0px 0px 72px;"><p><span>Child two</span></p></li></ul></div>' +
+    '<!--EndFragment--></body></html>';
+  const wOut = reconstruct(web);
+  ok('web: lead-in kept', /^Findings tell us:/.test(wOut));
+  ok('web: all items kept (5 lines)', wOut.split('\n').length === 5);
+  ok('web: parents are bullets', wOut.includes('•\tParent one.'));
+  ok('web: children demoted to en dash', wOut.includes('–\tChild one') && wOut.includes('–\tChild two'));
+  ok('web: desktop and web reconstructions match', wOut === dOut);
+
+  const flat =
+    '<html><body><ul>' +
+    '<li style="margin: 0px 0px 0px 24px;">Apples</li>' +
+    '<li style="margin: 0px 0px 0px 24px;">Oranges</li>' +
+    '</ul></body></html>';
+  const fOut = reconstruct(flat);
+  ok('flat list stays single-level (no en dash)', !fOut.includes('–\t'));
+}
+
 // ---- Summary ---------------------------------------------------------------
+
 
 console.log(`\n${'─'.repeat(50)}`);
 console.log(`Tests: ${passed + failed}  Passed: ${passed}  Failed: ${failed}`);
