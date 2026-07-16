@@ -48,6 +48,7 @@ textarea#input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--b5)}
 .out-card{display:flex;flex-direction:column}
 pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wrap;word-break:break-word;
   font:15px/1.7 'Open Sans',Arial,sans-serif;color:var(--c1)}
+pre#output.is-placeholder{color:#9c9fa0}
 .card-foot{border-top:1px solid var(--line);padding:11px 16px;display:flex;justify-content:flex-end;
   min-height:58px;align-items:center}
 .card-foot--start{justify-content:flex-start;gap:12px;flex-wrap:wrap}
@@ -158,7 +159,7 @@ pre#output{flex:1;min-height:194px;padding:18px 20px;margin:0;white-space:pre-wr
     <section>
       <div class="step-h"><span class="num">2</span><h2>Formatted list</h2><span class="step-hint">ready to copy</span></div>
       <div class="card out-card">
-        <pre id="output" aria-live="polite">Your formatted list will appear here</pre>
+        <pre id="output" class="is-placeholder" aria-live="polite">Your formatted list will appear here</pre>
         <div class="card-foot card-foot--copy">
           <button class="copy-btn hidden" id="copyWordBtn" type="button">Copy for Word</button>
           <button class="btn btn-ghost hidden" id="copyBtn" type="button">Copy as text</button>
@@ -887,7 +888,7 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
     }
     // The writer forced a fragment list onto full-sentence items: format mechanically, but be honest.
     const fragForcedNote = (forcedType === 'fragment' && d.granular.includes('clause'))
-      ? ' You chose a fragment list, but these items read as full sentences. A fragment list needs short phrases that complete the lead-in. The tool cannot shorten your wording for you. Shorten each item to a phrase, or choose ‘Sentence’ from the list type options instead.'
+      ? ' These items read as full sentences, but a fragment list needs short phrases that complete the lead-in. The tool cannot shorten your wording for you. Shorten each item to a phrase that completes the lead-in.'
       : '';
     explanation =
       `This is a fragment list. ${fragReason}. ` +
@@ -919,11 +920,11 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
       ? ' A sentence lead-in can end in a colon or a full stop \u2013 I kept your full stop. Use the same mark for all sentence lead-ins in your document.'
       : '';
     const imperativeTip = d.imperativeBasis === 'noSubject'
-      ? ' If the items aren\u2019t instructions to the reader, choose \u2018Fragment\u2019 from the list type options instead.'
+      ? ' If the items aren\u2019t instructions to the reader, reword the lead-in to name who acts (for example \u2018Participants will:\u2019). The items will then format as a fragment list.'
       : '';
     // The writer forced a sentence list onto phrase items: the tool cannot supply the missing grammar.
     const sentForcedNote = (forcedType === 'sentence' && (kind === 'noun phrases' || kind === 'phrases'))
-      ? ' You chose a sentence list, but these items are phrases, not full sentences. A sentence list needs each item to have a subject and a verb. The tool cannot add words, so reword each item as a complete sentence. If these aren’t sentences, choose ‘Fragment’ from the list type options instead.'
+      ? ' These items are phrases, not full sentences, and a sentence list needs each item to have a subject and a verb. The tool cannot add words. Reword each item as a complete sentence, or leave them as phrases and they will format as a fragment list.'
       : '';
     explanation =
       `This is a sentence list. ${reason}, so every item starts with a capital letter and ends with a full stop. ` +
@@ -932,7 +933,7 @@ function analyse(input, forcedType /* optional: 'sentence'|'fragment'|'standAlon
     formatted = formatStandAlone(rawLeadIn, d.cleaned, numbered);
     // Reached with full-sentence items only when the type is forced, so warn the writer.
     const clauseWarning = d.granular.includes('clause')
-      ? ' Note: the Style Manual says stand-alone list items cannot be full sentences. If these items are sentences, choose ‘Sentence’ from the list type options instead.'
+      ? ' Note: the Style Manual says stand-alone list items cannot be full sentences. Reword the items as short phrases, or add a lead-in sentence above them so they format as a sentence list.'
       : '';
     explanation =
       `This is a stand-alone list. \u2018${rawLeadIn.trim().replace(/:\s*$/, '')}\u2019 reads as a heading with no lead-in sentence, ` +
@@ -1028,7 +1029,9 @@ function collectFixes(cleaned) {
     document.getElementById('explanation').classList.add('hidden');
     document.getElementById('copyBtn').classList.add('hidden');
     document.getElementById('copyWordBtn').classList.add('hidden');
-    document.getElementById('output').textContent = 'Your formatted list will appear here';
+    const outEl = document.getElementById('output');
+    outEl.textContent = 'Your formatted list will appear here';
+    outEl.classList.add('is-placeholder');
   }
 
   function analyseList() {
@@ -1058,6 +1061,7 @@ function collectFixes(cleaned) {
     lastResult = result;
     document.getElementById('errorPanel').classList.add('hidden');
     const outputEl = document.getElementById('output');
+    outputEl.classList.remove('is-placeholder');
     if (result.alreadyCorrect) {
       outputEl.textContent = 'Your list is correctly formatted.';
       document.getElementById('copyBtn').classList.add('hidden');
@@ -1224,6 +1228,7 @@ function collectFixes(cleaned) {
     lastResult = null;
     document.getElementById('input').value = '';
     document.getElementById('output').textContent = 'Your formatted list will appear here';
+    document.getElementById('output').classList.add('is-placeholder');
     document.getElementById('explanation').classList.add('hidden');
     document.getElementById('errorPanel').classList.add('hidden');
     document.getElementById('copyBtn').classList.add('hidden');
